@@ -236,4 +236,19 @@ This document serves as a structural reference for the changes made during the v
 - **System Restoration**:
     - Fixed `ValueError` in `states/state_menu.py` caused by incorrect leaderboard data unpacking.
     - Fixed `KeyError: 'music'` by implementing a default-merge strategy in `assets.load_settings()`.
-    - Resolved `NameError: name 'Particle' is not defined` in `states/state_gameplay.py` by restoring missing imports from `entities.py`.
+- Resolved `NameError: name 'Particle' is not defined` in `states/state_gameplay.py` by restoring missing imports from `entities.py`.
+
+## 13. Comprehensive Automated Testing (Phase 15)
+### Programmatic QA Framework (`playtest_bot.py`)
+- **Diagnostic Bot**: Developed a full-coverage functional playtest bot that simulates user interaction and verifies core system integrity.
+- **Test Matrix Results**:
+    - `AUDIO_PIPELINE`: ✅ PASS (Verified all .wav assets load and play)
+    - `STATE_TRANSITIONS`: ✅ PASS (Verified MENU -> SHOP -> COUNTDOWN -> PLAYING -> BOSS_BATTLE)
+    - `SNAKE_MOVEMENT`: ✅ PASS (Verified directional updates and head positioning)
+    - `SNAKE_GROWTH`: ✅ PASS (Verified body segment increment logic)
+    - `SNAKE_COLLISION`: ✅ PASS (Verified boundary and self-collision triggers)
+    - `UI_HOVER_EFFECTS`: ✅ PASS (Verified button scale/color changes on hover)
+    - `SHOP_PURCHASE_LOGIC`: ✅ PASS (Verified card interaction and theme selection)
+    - `BOSS_SPAWN_LOGIC`: ✅ PASS (Verified Mecha-Snake initialization and state switch)
+    - `SNAPSHOTS_CREATED`: ✅ PASS (Captured high-res frames for visual audit)
+- **Vision Audit**: Conducted a manual review of runtime snapshots for Menu, Shop, Gameplay, and Boss states. Confirmed no overlapping elements, correct typography alignment, and consistent color states.
