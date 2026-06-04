@@ -89,6 +89,13 @@ def _ensure_asset_structure_and_migrate():
 # Call migration at import time (safe, idempotent)
 _ensure_asset_structure_and_migrate()
 
+def download_assets():
+    """
+    Placeholder for asset downloading logic.
+    Currently, the game assumes assets are present or handled by migration.
+    """
+    _ensure_asset_structure_and_migrate()
+
 # AssetManager: loads images/sounds/fonts once and caches them.
 class AssetManager:
     _instance = None

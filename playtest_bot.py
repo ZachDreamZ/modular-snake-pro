@@ -1,7 +1,7 @@
 import pygame
 import sys
 import os
-import assets
+import game_assets
 import save_manager
 from config import *
 from states.state_manager import StateManager
@@ -77,8 +77,8 @@ class PlaytestBot:
             # Verify asset existence
             all_sounds_exist = True
             sounds_to_check = [
-                assets.SOUND_EAT, assets.SOUND_POWERUP, 
-                assets.SOUND_CRASH, assets.SOUND_VICTORY, assets.SOUND_CLICK
+                game_assets.SOUND_EAT, game_assets.SOUND_POWERUP, 
+                game_assets.SOUND_CRASH, game_assets.SOUND_VICTORY, game_assets.SOUND_CLICK
             ]
             for s in sounds_to_check:
                 if not os.path.exists(s):
@@ -88,7 +88,7 @@ class PlaytestBot:
                     # Try playing it using the asset filename stem (cached by AssetManager)
                     try:
                         name = Path(s).stem
-                        assets.sound_manager.play(name)
+                        game_assets.sound_manager.play(name)
                     except Exception:
                         pass
             

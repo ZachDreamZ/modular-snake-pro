@@ -793,6 +793,7 @@
   ('runpy',
    'C:\\Users\\Vendex\\AppData\\Local\\Programs\\Python\\Python311\\Lib\\runpy.py',
    'PYMODULE'),
+  ('save_manager', 'C:\\dev\\save_manager.py', 'PYMODULE'),
   ('secrets',
    'C:\\Users\\Vendex\\AppData\\Local\\Programs\\Python\\Python311\\Lib\\secrets.py',
    'PYMODULE'),

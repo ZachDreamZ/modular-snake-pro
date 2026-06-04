@@ -1,6 +1,6 @@
 import pygame
 from config import *
-import assets
+import game_assets
 import ui
 
 class ShopState:
@@ -25,7 +25,7 @@ class ShopState:
                     if theme_key in manager.unlocked_themes:
                         # Equip
                         manager.theme = THEMES[theme_key]
-                        assets.save_settings({"theme": theme_key})
+                        game_assets.save_settings({"theme": theme_key})
                     else:
                         # Attempt Purchase
                         cost = manager.theme_costs.get(theme_key, 0)
@@ -37,9 +37,9 @@ class ShopState:
                             manager.total_points -= cost
                             manager.unlocked_themes.append(theme_key)
                             manager.theme = THEMES[theme_key]
-                            assets.save_total_points(manager.total_points)
-                            assets.save_unlocked_themes(manager.unlocked_themes)
-                            assets.save_settings({"theme": theme_key})
+                            game_assets.save_total_points(manager.total_points)
+                            game_assets.save_unlocked_themes(manager.unlocked_themes)
+                            game_assets.save_settings({"theme": theme_key})
                             manager.trigger_toast(f"Unlocked {THEMES[theme_key]['name']}!")
                         else:
                             manager.trigger_toast("Not enough points!")

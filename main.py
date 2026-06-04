@@ -1,11 +1,11 @@
 import pygame
-import assets
+import game_assets
 from config import *
 from states.state_manager import StateManager
 
 def main():
     # Automatically download required game assets
-    assets.download_assets()
+    game_assets.download_assets()
 
     # Initialize Pygame
     pygame.init()

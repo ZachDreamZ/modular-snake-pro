@@ -1,6 +1,6 @@
 import pygame
 from config import *
-import assets
+import game_assets
 import ui
 
 class MenuState:
@@ -51,12 +51,12 @@ class MenuState:
                 if event.type == pygame.MOUSEBUTTONDOWN:
                     if self.music_btn.rect.collidepoint(mx, my):
                         manager.settings["music"] = not manager.settings["music"]
-                        assets.sound_manager.set_music(manager.settings["music"])
-                        assets.save_settings(manager.settings)
+                        game_assets.sound_manager.set_music(manager.settings["music"])
+                        game_assets.save_settings(manager.settings)
                     elif self.sfx_btn.rect.collidepoint(mx, my):
                         manager.settings["sfx"] = not manager.settings["sfx"]
-                        assets.sound_manager.set_sfx(manager.settings["sfx"])
-                        assets.save_settings(manager.settings)
+                        game_assets.sound_manager.set_sfx(manager.settings["sfx"])
+                        game_assets.save_settings(manager.settings)
                     elif self.back_btn.rect.collidepoint(mx, my):
                         self.sub_state = "MENU"
                         manager.change_state("MENU")
@@ -169,7 +169,7 @@ class MenuState:
         manager.screen.blit(manager.menu_overlay, (0, 0))
         ui.draw_text(manager.screen, "LEADERBOARD", FONT_SIZE_MEDIUM, SCREEN_WIDTH // 2, 100, COLOR_WHITE, manager.pixel_font)
         
-        high_scores = assets.load_leaderboard()
+        high_scores = game_assets.load_leaderboard()
         for i, entry in enumerate(high_scores[:5]):
             name = entry.get("name", "Unknown")
             score = entry.get("score", 0)

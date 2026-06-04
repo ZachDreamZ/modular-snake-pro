@@ -2,7 +2,7 @@ import pygame
 import random
 import math
 from config import *
-import assets
+import game_assets
 import ui
 from entities import Snake, AISnake, Food, Particle, Boss, Projectile
 
@@ -11,7 +11,7 @@ class StateManager:
         self.screen = screen
         self.clock = clock
         self.state = "MENU"
-        self.unlocked_themes = assets.load_unlocked_themes()
+        self.unlocked_themes = game_assets.load_unlocked_themes()
         self.theme = THEMES[self.unlocked_themes[0]] if self.unlocked_themes else THEMES["default"]
         self.running = True
         
@@ -39,8 +39,8 @@ class StateManager:
         self.game_speed = 10
         self.shield_timer = 0
         self.invulnerability_timer = 0
-        self.highscore = assets.load_high_score()
-        self.total_points = assets.load_total_points()
+        self.highscore = game_assets.load_high_score()
+        self.total_points = game_assets.load_total_points()
         
         # Boss Battle variables
         self.boss = None
@@ -59,12 +59,12 @@ class StateManager:
         self.survival_timer = 0
 
         # Settings variables
-        self.settings = assets.load_settings()
-        assets.sound_manager.set_music(self.settings.get("music", True))
-        assets.sound_manager.set_sfx(self.settings.get("sfx", True))
+        self.settings = game_assets.load_settings()
+        game_assets.sound_manager.set_music(self.settings.get("music", True))
+        game_assets.sound_manager.set_sfx(self.settings.get("sfx", True))
 
         # Achievement variables
-        self.unlocked_achievements = assets.load_achievements()
+        self.unlocked_achievements = game_assets.load_achievements()
         self.active_toast = None
         self.toast_timer = 0
         self.toast_offset_y = -50
@@ -95,7 +95,7 @@ class StateManager:
         self.shop_ui = ui.ShopUI()
         
         # Start Background Music
-        assets.sound_manager.play_music("assets/bgm_main.wav")
+        game_assets.sound_manager.play_music("assets/bgm_main.wav")
         
         self.menu_buttons = [
             ui.Button("PLAY", SCREEN_WIDTH // 2, 200, 200, 50, (57, 255, 20), (150, 255, 100), self.pixel_font, "click"),
@@ -269,13 +269,13 @@ class StateManager:
                         music_rect = pygame.Rect(SCREEN_WIDTH // 2 - 100, SCREEN_HEIGHT // 3, 200, 50)
                         if music_rect.collidepoint(mx, my):
                             self.settings["music"] = not self.settings.get("music", True)
-                            assets.sound_manager.set_music(self.settings["music"])
-                            assets.save_settings(self.settings)
+                            game_assets.sound_manager.set_music(self.settings["music"])
+                            game_assets.save_settings(self.settings)
                         sfx_rect = pygame.Rect(SCREEN_WIDTH // 2 - 100, SCREEN_HEIGHT // 3 + 80, 200, 50)
                         if sfx_rect.collidepoint(mx, my):
                             self.settings["sfx"] = not self.settings.get("sfx", True)
-                            assets.sound_manager.set_sfx(self.settings["sfx"])
-                            assets.save_settings(self.settings)
+                            game_assets.sound_manager.set_sfx(self.settings["sfx"])
+                            game_assets.save_settings(self.settings)
 
         elif self.state == "SHOP":
             for event in events:
@@ -294,9 +294,9 @@ class StateManager:
                             self.trigger_toast(f"Locked! Requires: {req_ach}")
                         elif theme_key not in self.unlocked_themes and self.total_points >= cost:
                             self.total_points -= cost
-                            assets.save_total_points(self.total_points)
+                            game_assets.save_total_points(self.total_points)
                             self.unlocked_themes.append(theme_key)
-                            assets.save_unlocked_themes(self.unlocked_themes)
+                            game_assets.save_unlocked_themes(self.unlocked_themes)
                     elif event.key == pygame.K_t:
                         theme_key = self.theme_keys[self.shop_index]
                         req_ach = THEMES[theme_key].get("required_achievement")
@@ -322,9 +322,9 @@ class StateManager:
                                 self.theme = THEMES[theme_key]
                             elif self.total_points >= self.theme_costs[theme_key]:
                                 self.total_points -= self.theme_costs[theme_key]
-                                assets.save_total_points(self.total_points)
+                                game_assets.save_total_points(self.total_points)
                                 self.unlocked_themes.append(theme_key)
-                                assets.save_unlocked_themes(self.unlocked_themes)
+                                game_assets.save_unlocked_themes(self.unlocked_themes)
                             else:
                                 self.trigger_toast("Not enough points!")
                         # Back button
@@ -402,23 +402,23 @@ class StateManager:
     def handle_food_eat(self):
         self.check_achievements()
         if self.food.type == "normal":
-            assets.sound_manager.play("eat")
+            game_assets.sound_manager.play("eat")
             self.score += 10
             if self.current_mode == MODE_TIME_RUSH: self.time_rush_timer += 3
         elif self.food.type == "golden":
-            assets.sound_manager.play("powerup")
+            game_assets.sound_manager.play("powerup")
             self.score += 30
             self.snake.body.append(self.snake.body[-1])
         elif self.food.type == "poison":
-            assets.sound_manager.play("crash")
+            game_assets.sound_manager.play("crash")
             self.score = max(0, self.score - 20)
             if len(self.snake.body) > 1: self.snake.pop_tail()
         elif self.food.type == "shield":
-            assets.sound_manager.play("powerup")
+            game_assets.sound_manager.play("powerup")
             self.snake.has_shield = True
             self.shield_timer = 10 * self.game_speed
         elif self.food.type == "missile":
-            assets.sound_manager.play("powerup")
+            game_assets.sound_manager.play("powerup")
             head = self.snake.body[0]
             self.projectiles.append(Projectile(head[0] + BLOCK_SIZE//2, head[1] + BLOCK_SIZE//2, self.snake.direction))
             self.score += 20
@@ -480,9 +480,9 @@ class StateManager:
         return True
 
     def trigger_game_over(self):
-        assets.sound_manager.play("crash")
-        assets.update_score(self.score)
-        if assets.check_high_score(self.score): self.change_state("HIGH_SCORE_ENTRY")
+        game_assets.sound_manager.play("crash")
+        game_assets.update_score(self.score)
+        if game_assets.check_high_score(self.score): self.change_state("HIGH_SCORE_ENTRY")
         else: self.change_state("GAMEOVER")
 
     def trigger_toast(self, message):
@@ -499,7 +499,7 @@ class StateManager:
         for ach in new_unlocks:
             self.unlocked_achievements.append(ach)
             self.trigger_toast(f"ACHIEVEMENT UNLOCKED: {ach}")
-        if new_unlocks: assets.save_achievements(self.unlocked_achievements)
+        if new_unlocks: game_assets.save_achievements(self.unlocked_achievements)
 
     def cycle_name_char(self, direction):
         chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ "
@@ -510,10 +510,10 @@ class StateManager:
 
     def save_final_high_score(self):
         name = "".join(self.player_name).strip() or "AAA"
-        leaderboard = assets.load_leaderboard()
+        leaderboard = game_assets.load_leaderboard()
         leaderboard.append({"name": name, "score": self.score, "stage": self.stage})
         leaderboard.sort(key=lambda x: x["score"], reverse=True)
-        assets.save_leaderboard(leaderboard)
+        game_assets.save_leaderboard(leaderboard)
 
     def draw(self):
         offset_x = random.randint(-self.shake_amount, self.shake_amount) if self.shake_amount > 0 else 0
@@ -660,10 +660,10 @@ class StateManager:
 
     def trigger_boss_victory(self):
         self.check_achievements()
-        assets.sound_manager.play("victory")
+        game_assets.sound_manager.play("victory")
         self.score += 1000
         self.total_points += 1000
-        assets.save_total_points(self.total_points)
+        game_assets.save_total_points(self.total_points)
         self.shake_amount = 20
         self.victory_timer = 120
         self.change_state("VICTORY")
@@ -683,7 +683,7 @@ class StateManager:
 
     def draw_leaderboard(self):
         ui.draw_text(self.screen, "TOP 5 SCORES", FONT_SIZE_HUGE, SCREEN_WIDTH // 2, SCREEN_HEIGHT // 6, COLOR_YELLOW)
-        leaderboard = assets.load_leaderboard()
+        leaderboard = game_assets.load_leaderboard()
         for i, entry in enumerate(leaderboard):
             text = f"{i+1}. {entry['name']} - Score: {entry['score']} (Stage {entry['stage']})"
             ui.draw_text(self.screen, text, FONT_SIZE_MEDIUM, SCREEN_WIDTH // 2, (SCREEN_HEIGHT // 3) + i * 40, COLOR_WHITE)

@@ -2,7 +2,7 @@ import pygame
 import random
 import math
 from config import *
-import assets
+import game_assets
 import ui
 from entities import Snake, AISnake, Food, Particle, Boss, Projectile
 
@@ -121,23 +121,23 @@ class GameplayState:
     def handle_food_eat(self, manager):
         self.check_achievements(manager)
         if manager.food.type == "normal":
-            assets.sound_manager.play("eat")
+            game_assets.sound_manager.play("eat")
             manager.score += 10
             if manager.current_mode == MODE_TIME_RUSH: manager.time_rush_timer += 3
         elif manager.food.type == "golden":
-            assets.sound_manager.play("powerup")
+            game_assets.sound_manager.play("powerup")
             manager.score += 15  # Base 10 + Bonus 5
             manager.snake.body.append(manager.snake.body[-1])
         elif manager.food.type == "poison":
-            assets.sound_manager.play("crash")
+            game_assets.sound_manager.play("crash")
             manager.score = max(0, manager.score - 20)
             if len(manager.snake.body) > 1: manager.snake.pop_tail()
         elif manager.food.type == "shield":
-            assets.sound_manager.play("powerup")
+            game_assets.sound_manager.play("powerup")
             manager.snake.has_shield = True
             manager.shield_timer = 10 * manager.game_speed
         elif manager.food.type == "missile":
-            assets.sound_manager.play("powerup")
+            game_assets.sound_manager.play("powerup")
             head = manager.snake.body[0]
             manager.projectiles.append(Projectile(head[0] + BLOCK_SIZE//2, head[1] + BLOCK_SIZE//2, manager.snake.direction))
             manager.score += 20
@@ -177,9 +177,9 @@ class GameplayState:
 
     def trigger_game_over(self, manager):
         import save_manager
-        assets.sound_manager.play("crash")
+        game_assets.sound_manager.play("crash")
         save_manager.save_high_score(manager.score)
-        if assets.check_high_score(manager.score): manager.change_state("HIGH_SCORE_ENTRY")
+        if game_assets.check_high_score(manager.score): manager.change_state("HIGH_SCORE_ENTRY")
         else: manager.change_state("GAMEOVER")
 
     def check_achievements(self, manager):
@@ -191,7 +191,7 @@ class GameplayState:
         for ach in new_unlocks:
             manager.unlocked_achievements.append(ach)
             manager.trigger_toast(f"ACHIEVEMENT UNLOCKED: {ach}")
-        if new_unlocks: assets.save_achievements(manager.unlocked_achievements)
+        if new_unlocks: game_assets.save_achievements(manager.unlocked_achievements)
 
     def cycle_name_char(self, manager, direction):
         chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ "
@@ -202,10 +202,10 @@ class GameplayState:
 
     def save_final_high_score(self, manager):
         name = "".join(manager.player_name).strip() or "AAA"
-        leaderboard = assets.load_leaderboard()
+        leaderboard = game_assets.load_leaderboard()
         leaderboard.append({"name": name, "score": manager.score, "stage": manager.stage})
         leaderboard.sort(key=lambda x: x["score"], reverse=True)
-        assets.save_leaderboard(leaderboard)
+        game_assets.save_leaderboard(leaderboard)
 
     def update_boss_battle(self, manager):
         head = manager.snake.update()
@@ -248,10 +248,10 @@ class GameplayState:
 
     def trigger_boss_victory(self, manager):
         self.check_achievements(manager)
-        assets.sound_manager.play("victory")
+        game_assets.sound_manager.play("victory")
         manager.score += 1000
         manager.total_points += 1000
-        assets.save_total_points(manager.total_points)
+        game_assets.save_total_points(manager.total_points)
         manager.shake_amount = 20
         manager.victory_timer = 120
         manager.change_state("VICTORY")

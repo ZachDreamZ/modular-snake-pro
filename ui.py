@@ -2,7 +2,7 @@ import pygame
 import math
 import random
 from config import *
-import assets
+import game_assets
 from entities import Snake
 
 class Button:
@@ -23,7 +23,7 @@ class Button:
         if self.rect.collidepoint(mouse_pos):
             if not self.is_hovered:
                 if self.hover_sound:
-                    assets.sound_manager.play(self.hover_sound)
+                    game_assets.sound_manager.play(self.hover_sound)
                 self.is_hovered = True
             
             if mouse_buttons[0]: # Left click

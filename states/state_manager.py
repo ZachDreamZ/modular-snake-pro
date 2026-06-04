@@ -2,7 +2,7 @@ import pygame
 import random
 import math
 from config import *
-import assets
+import game_assets
 import ui
 from entities import Snake, AISnake, Food, Particle, Boss, Projectile
 from .state_menu import MenuState
@@ -14,7 +14,7 @@ class StateManager:
         self.screen = screen
         self.clock = clock
         self.state_name = "MENU"
-        self.unlocked_themes = assets.load_unlocked_themes()
+        self.unlocked_themes = game_assets.load_unlocked_themes()
         self.theme = THEMES[self.unlocked_themes[0]] if self.unlocked_themes else THEMES["default"]
         self.running = True
         
@@ -42,8 +42,8 @@ class StateManager:
         self.game_speed = 10
         self.shield_timer = 0
         self.invulnerability_timer = 0
-        self.highscore = assets.load_high_score()
-        self.total_points = assets.load_total_points()
+        self.highscore = game_assets.load_high_score()
+        self.total_points = game_assets.load_total_points()
         
         # Boss Battle variables
         self.boss = None
@@ -62,12 +62,12 @@ class StateManager:
         self.survival_timer = 0
 
         # Settings variables
-        self.settings = assets.load_settings()
-        assets.sound_manager.set_music(self.settings.get("music", True))
-        assets.sound_manager.set_sfx(self.settings.get("sfx", True))
+        self.settings = game_assets.load_settings()
+        game_assets.sound_manager.set_music(self.settings.get("music", True))
+        game_assets.sound_manager.set_sfx(self.settings.get("sfx", True))
 
         # Achievement variables
-        self.unlocked_achievements = assets.load_achievements()
+        self.unlocked_achievements = game_assets.load_achievements()
         self.active_toast = None
         self.toast_timer = 0
         self.toast_offset_y = -50
@@ -98,7 +98,7 @@ class StateManager:
         self.shop_ui = ui.ShopUI()
         
         # Start Background Music
-        assets.sound_manager.play_music("assets/bgm_main.wav")
+        game_assets.sound_manager.play_music("assets/bgm_main.wav")
         
         self.menu_buttons = [
             ui.Button("PLAY", SCREEN_WIDTH // 2, 200, 200, 50, (57, 255, 20), (150, 255, 100), self.pixel_font, "click"),

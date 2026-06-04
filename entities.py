@@ -2,7 +2,7 @@ import pygame
 import random
 import math
 from config import *
-import assets
+import game_assets
 
 # Asset Cache
 FOOD_SPRITES = {}
