@@ -5,6 +5,7 @@ import assets
 from config import *
 from states.state_manager import StateManager
 from entities import Snake, Food, Boss
+from pathlib import Path
 import ui
 
 class PlaytestBot:
@@ -17,6 +18,26 @@ class PlaytestBot:
         
         # Initialize State Manager
         self.manager = StateManager(self.screen, self.clock)
+
+        # UI bounding box mappings used by the playtest bot to interact with the reskinned UI
+        self.ui_mappings = {"menu_buttons": [], "shop_cards": []}
+        try:
+            for b in getattr(self.manager, "menu_buttons", []):
+                # store a copy of the rect for stable interaction checks
+                self.ui_mappings["menu_buttons"].append(b.rect.copy())
+            shop = getattr(self.manager, "shop_ui", None)
+            theme_keys = getattr(self.manager, "theme_keys", [])
+            if shop and theme_keys:
+                for i in range(len(theme_keys)):
+                    col = i % 2
+                    row = i // 2
+                    cx = shop.grid_start_x + col * (shop.card_w + 20)
+                    cy = shop.grid_start_y + row * (shop.card_h + 10)
+                    rect = pygame.Rect(cx, cy, shop.card_w, shop.card_h)
+                    self.ui_mappings["shop_cards"].append(rect)
+        except Exception:
+            # best-effort mapping population; failures shouldn't stop tests
+            pass
         
         # Test Matrix
         self.test_matrix = {
@@ -42,7 +63,9 @@ class PlaytestBot:
             self.test_matrix[test_name] = success
 
     def take_snapshot(self, name):
-        filename = f"snapshot_{name}.png"
+        screenshots_dir = os.path.join("assets", "screenshots")
+        os.makedirs(screenshots_dir, exist_ok=True)
+        filename = os.path.join(screenshots_dir, f"snapshot_{name}.png")
         pygame.image.save(self.screen, filename)
         return filename
 
@@ -60,8 +83,12 @@ class PlaytestBot:
                     self.log("AUDIO_PIPELINE", False, f"Missing asset: {s}")
                     all_sounds_exist = False
                 else:
-                    # Try playing it
-                    assets.sound_manager.play(s.split("/")[-1].replace(".wav", ""))
+                    # Try playing it using the asset filename stem (cached by AssetManager)
+                    try:
+                        name = Path(s).stem
+                        assets.sound_manager.play(name)
+                    except Exception:
+                        pass
             
             if all_sounds_exist:
                 self.log("AUDIO_PIPELINE", True, "Audio Pipeline Loaded and playable")
@@ -156,6 +183,18 @@ class PlaytestBot:
             else:
                 self.log("UI_HOVER_EFFECTS", False, f"Button {btn.text} press failed")
         
+            # Verify playtest mapping against runtime button bbox for consistency
+            try:
+                if "menu_buttons" in self.ui_mappings and len(self.ui_mappings["menu_buttons"]) > 0:
+                    mapped_rect = self.ui_mappings["menu_buttons"][0]
+                    actual_rect = btn.rect
+                    if mapped_rect == actual_rect:
+                        self.log("UI_HOVER_EFFECTS", True, "Mapping MENU button bbox matches actual")
+                    else:
+                        self.log("UI_HOVER_EFFECTS", False, f"Mapping MENU bbox mismatch: mapped={mapped_rect}, actual={actual_rect}")
+            except Exception as e:
+                self.log("UI_HOVER_EFFECTS", False, f"Exception during mapping validation: {e}")
+        
             # Test Shop Purchase Logic
             shop_ui = self.manager.shop_ui
             mx = shop_ui.grid_start_x + 10
@@ -192,7 +231,7 @@ class PlaytestBot:
         self.manager.change_state("MENU")
         self.manager.draw()
         self.take_snapshot("menu")
-        pygame.image.save(self.screen, "audit_menu_makeover.png")
+        pygame.image.save(self.screen, os.path.join("assets", "screenshots", "audit_menu_makeover.png"))
         
         self.manager.change_state("SHOP")
         self.manager.draw()

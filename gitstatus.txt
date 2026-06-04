@@ -1,0 +1,13 @@
+ M .gitignore
+ M implementation_summary.md
+ m mcp_servers/context7-mcp
+?? .github/
+?? build/
+?? dist/main.exe
+?? gitstatus.txt
+?? main.spec
+?? requirements.txt
+?? snapshot_boss.png
+?? snapshot_gameplay.png
+?? snapshot_menu.png
+?? snapshot_shop.png

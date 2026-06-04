@@ -37,10 +37,10 @@ class Button:
     def draw(self, surface):
         # Determine visual state
         if self.is_pressed:
-            draw_rect = self.rect.inflate(-4, -4)
+            draw_rect = self.rect.inflate(-6, -6)
             color = [max(0, c - 30) for c in self.hover_color] # Darken hover color
         elif self.is_hovered:
-            draw_rect = self.rect.inflate(10, 10)
+            draw_rect = self.rect.inflate(8, 8)
             color = self.hover_color
         else:
             draw_rect = self.rect
@@ -65,7 +65,7 @@ class Button:
         if self.is_hovered and not self.is_pressed:
             t = pygame.time.get_ticks() / 150
             offset = math.sin(t) * 4
-            marker_rect = pygame.Rect(draw_rect.left + 10, draw_rect.top + 10 + offset, 4, draw_rect.height - 20)
+            marker_rect = pygame.Rect(draw_rect.left + 12, draw_rect.top + 10 + offset, 5, draw_rect.height - 20)
             pygame.draw.rect(surface, (255, 255, 255), marker_rect, border_radius=2)
 
     def is_clicked(self, mouse_pos):
@@ -103,10 +103,14 @@ def get_text_rect(text, size, x, y):
 
 class ShopUI:
     def __init__(self):
-        self.grid_start_x = 420
-        self.grid_start_y = 110
-        self.card_w = 130
-        self.card_h = 80
+        # Adjusted defaults to provide extra padding and spacing to avoid clipping on reskinned UI
+        self.grid_start_x = 400
+        self.grid_start_y = 120
+        self.card_w = 140
+        self.card_h = 90
+        # Horizontal / vertical spacing between cards
+        self.h_spacing = 30
+        self.v_spacing = 20
         self.pedestal_x = 200
         self.pedestal_y = 220
 
@@ -138,8 +142,8 @@ class ShopUI:
         for i, theme_key in enumerate(manager.theme_keys):
             col = i % 2
             row = i // 2
-            cx = self.grid_start_x + col * (self.card_w + 20)
-            cy = self.grid_start_y + row * (self.card_h + 10)
+            cx = self.grid_start_x + col * (self.card_w + self.h_spacing)
+            cy = self.grid_start_y + row * (self.card_h + self.v_spacing)
             rect = pygame.Rect(cx, cy, self.card_w, self.card_h)
             
             rarity = THEMES[theme_key].get("rarity", "common")
@@ -165,17 +169,24 @@ class ShopUI:
             pygame.draw.rect(surface, btn_color, btn_rect, border_radius=5)
             draw_text(surface, btn_text, 10, btn_rect.centerx, btn_rect.centery, COLOR_BLACK)
 
-    def get_card_at_pos(self, mouse_pos):
-        for i, theme_key in enumerate(THEMES.keys()): # This is wrong, should use manager.theme_keys
-            pass
+    def get_card_at_pos(self, mouse_pos, manager):
+        mx, my = mouse_pos
+        for i, theme_key in enumerate(manager.theme_keys):
+            col = i % 2
+            row = i // 2
+            cx = self.grid_start_x + col * (self.card_w + self.h_spacing)
+            cy = self.grid_start_y + row * (self.card_h + self.v_spacing)
+            rect = pygame.Rect(cx, cy, self.card_w, self.card_h)
+            if rect.collidepoint(mx, my):
+                return i
         return None
 
     def handle_click(self, mx, my, theme_keys):
         for i, theme_key in enumerate(theme_keys):
             col = i % 2
             row = i // 2
-            cx = self.grid_start_x + col * (self.card_w + 20)
-            cy = self.grid_start_y + row * (self.card_h + 10)
+            cx = self.grid_start_x + col * (self.card_w + self.h_spacing)
+            cy = self.grid_start_y + row * (self.card_h + self.v_spacing)
             rect = pygame.Rect(cx, cy, self.card_w, self.card_h)
             if rect.collidepoint(mx, my):
                 return i
