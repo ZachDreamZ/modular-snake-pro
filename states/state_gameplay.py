@@ -4,6 +4,7 @@ import math
 from config import *
 import assets
 import ui
+from entities import Snake, AISnake, Food, Particle, Boss, Projectile
 
 class GameplayState:
     def __init__(self):

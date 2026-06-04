@@ -79,9 +79,9 @@ def get_text_rect(text, size, x, y):
 class ShopUI:
     def __init__(self):
         self.grid_start_x = 420
-        self.grid_start_y = 120
+        self.grid_start_y = 110
         self.card_w = 130
-        self.card_h = 70
+        self.card_h = 80
         self.pedestal_x = 200
         self.pedestal_y = 220
 

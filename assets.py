@@ -212,13 +212,15 @@ def check_high_score(score):
 
 def load_settings():
     """Loads game settings from settings.json."""
+    defaults = {"music": True, "sfx": True}
     if not os.path.exists(SETTINGS_FILE):
-        return {"music": True, "sfx": True}
+        return defaults
     try:
         with open(SETTINGS_FILE, "r") as f:
-            return json.load(f)
+            settings = json.load(f)
+            return {**defaults, **settings}
     except (json.JSONDecodeError, IOError):
-        return {"music": True, "sfx": True}
+        return defaults
 
 def save_settings(settings):
     """Saves game settings to settings.json."""

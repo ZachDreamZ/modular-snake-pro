@@ -227,3 +227,13 @@ This document serves as a structural reference for the changes made during the v
 - **Defensive Implementation**:
     - Created `states/__init__.py` to formally define the states directory as a Python package.
     - Enforced a one-way import flow to prevent circular dependencies during the refactor.
+
+## 12. Visual QA Audit & Final Polish (Phase 14)
+- **Automated Testing**: Created `test_ui.py` to programmatically traverse the Main Menu and Shop, capturing high-resolution screenshots for visual verification.
+- **Vision-Based Corrections**:
+    - **Card Proportions**: Increased `card_h` to 80px and adjusted `grid_start_y` to 110px in `ui.py` to provide more breathing room and a more premium aesthetic.
+    - **Boundary Protection**: Moved "S: Back to Menu" label to `SCREEN_HEIGHT - 30` in `states/state_shop.py` to eliminate potential text clipping at the screen edge.
+- **System Restoration**:
+    - Fixed `ValueError` in `states/state_menu.py` caused by incorrect leaderboard data unpacking.
+    - Fixed `KeyError: 'music'` by implementing a default-merge strategy in `assets.load_settings()`.
+    - Resolved `NameError: name 'Particle' is not defined` in `states/state_gameplay.py` by restoring missing imports from `entities.py`.

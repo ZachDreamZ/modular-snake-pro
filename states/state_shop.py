@@ -52,4 +52,4 @@ class ShopState:
         manager.shop_ui.draw(manager.screen, manager)
         
         # Navigation Label
-        ui.draw_text(manager.screen, "S: Back to Menu", FONT_SIZE_TINY, SCREEN_WIDTH // 2, SCREEN_HEIGHT - 20, COLOR_GREY, manager.small_font)
+        ui.draw_text(manager.screen, "S: Back to Menu", FONT_SIZE_TINY, SCREEN_WIDTH // 2, SCREEN_HEIGHT - 30, COLOR_GREY, manager.small_font)

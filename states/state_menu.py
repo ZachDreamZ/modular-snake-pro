@@ -128,7 +128,9 @@ class MenuState:
         ui.draw_text(manager.screen, "LEADERBOARD", FONT_SIZE_MEDIUM, SCREEN_WIDTH // 2, 100, COLOR_WHITE, manager.pixel_font)
         
         high_scores = assets.load_leaderboard()
-        for i, (name, score) in enumerate(high_scores[:5]):
+        for i, entry in enumerate(high_scores[:5]):
+            name = entry.get("name", "Unknown")
+            score = entry.get("score", 0)
             ui.draw_text(manager.screen, f"{i+1}. {name}: {score}", FONT_SIZE_SMALL, SCREEN_WIDTH // 2, 160 + i * 30, COLOR_WHITE, manager.small_font)
         
         if not hasattr(self, 'back_btn'):
