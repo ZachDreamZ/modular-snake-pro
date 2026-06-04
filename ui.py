@@ -79,9 +79,9 @@ def get_text_rect(text, size, x, y):
 class ShopUI:
     def __init__(self):
         self.grid_start_x = 420
-        self.grid_start_y = 150
+        self.grid_start_y = 120
         self.card_w = 130
-        self.card_h = 90
+        self.card_h = 70
         self.pedestal_x = 200
         self.pedestal_y = 220
 
@@ -114,7 +114,7 @@ class ShopUI:
             col = i % 2
             row = i // 2
             cx = self.grid_start_x + col * (self.card_w + 20)
-            cy = self.grid_start_y + row * (self.card_h + 20)
+            cy = self.grid_start_y + row * (self.card_h + 10)
             rect = pygame.Rect(cx, cy, self.card_w, self.card_h)
             
             rarity = THEMES[theme_key].get("rarity", "common")
@@ -136,9 +136,9 @@ class ShopUI:
                 btn_text = "🔒 Locked"
                 btn_color = (50, 50, 50)
 
-            btn_rect = pygame.Rect(cx + 15, cy + 45, self.card_w - 30, 30)
+            btn_rect = pygame.Rect(cx + 15, cy + 35, self.card_w - 30, 25)
             pygame.draw.rect(surface, btn_color, btn_rect, border_radius=5)
-            draw_text(surface, btn_text, FONT_SIZE_TINY, btn_rect.centerx, btn_rect.centery, COLOR_BLACK)
+            draw_text(surface, btn_text, 10, btn_rect.centerx, btn_rect.centery, COLOR_BLACK)
 
     def get_card_at_pos(self, mouse_pos):
         for i, theme_key in enumerate(THEMES.keys()): # This is wrong, should use manager.theme_keys
@@ -150,7 +150,7 @@ class ShopUI:
             col = i % 2
             row = i // 2
             cx = self.grid_start_x + col * (self.card_w + 20)
-            cy = self.grid_start_y + row * (self.card_h + 20)
+            cy = self.grid_start_y + row * (self.card_h + 10)
             rect = pygame.Rect(cx, cy, self.card_w, self.card_h)
             if rect.collidepoint(mx, my):
                 return i

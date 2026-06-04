@@ -211,3 +211,19 @@ This document serves as a structural reference for the changes made during the v
 - **Visual Sequence**: Renders a massive "3... 2... 1... GO!" sequence in the center of the screen.
 - **Dynamic Animation**: Implemented a scale-pulsing effect where numbers scale from 1.5x down to 1.0x every second, creating a high-energy transition into the match.
 - **State Transition**: Once the "GO!" timer expires, the game automatically transitions to the `PLAYING` state.
+
+## 11. Architectural Decoupling & Shop Repair (Critical Refactor)
+- **State Modularization**: Dismantled the bloated `states.py` into a modular `states/` package to improve AI readability and maintainability.
+    - `state_manager.py`: Central hub for state switching, shared game variables, and the main event loop.
+    - `state_menu.py`: Logic for Title Screen and Mode Selection.
+    - `state_shop.py`: Logic for theme purchasing and equipping.
+    - `state_gameplay.py`: Core game loop, boss battle, and game-over sequences.
+- **Bug Fixes**:
+    - **Shop Input Crash**: Standardized `ShopUI.handle_click` signature to `(self, mx, my, theme_keys)`, resolving a `TypeError` that occurred when passing mouse coordinates and theme data.
+- **Visual Alignment & Bounds Correction**:
+    - **Skin Shop Grid**: Recalculated grid dimensions (reduced card height to 70px and vertical gap to 10px) and adjusted `grid_start_y` to 120px, ensuring all 5 skins fit comfortably within the 400px screen height without clipping.
+    - **Navigation Label**: Repositioned the "S: Back to Menu" label to `SCREEN_HEIGHT - 20` for optimal visibility.
+    - **UI Polish**: Scaled down the "Equipped" button text to 10px to prevent clipping outside button borders.
+- **Defensive Implementation**:
+    - Created `states/__init__.py` to formally define the states directory as a Python package.
+    - Enforced a one-way import flow to prevent circular dependencies during the refactor.

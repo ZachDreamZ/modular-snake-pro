@@ -1,7 +1,7 @@
 import pygame
 import assets
 from config import *
-from states import StateManager
+from states.state_manager import StateManager
 
 def main():
     # Automatically download required game assets
