@@ -132,6 +132,18 @@ This document serves as a structural reference for the changes made during the v
 - **Visual Polish**: Each button features a distinct color palette and rounded corners (border-radius 12) with high-contrast borders.
 - **Parallax Background**: Added a seamless, slow-panning parallax effect to the checkered background in the menu state to create a "living" environment.
 
+### Dedicated Settings & Persistence
+- **Settings State**: Introduced a new `SETTINGS` state allowing players to toggle `MUSIC` and `SFX`.
+- **Persistence**: Integrated `settings.json` to ensure audio preferences are remembered across game launches.
+- **Audio Integration**: Toggles are directly linked to the `SoundManager`, enabling real-time muting of sound effects and music.
+
+### Automated Asset Pipeline
+- **Web Downloader**: Created a utility in `assets.py` that automatically checks for and downloads real `.png` sprites from raw public URLs on startup.
+- **Sprite Integration**: Updated `entities.py` to replace procedural circle drawing for "Normal" food with a scaled `apple.png` sprite, with an automatic fallback to procedural art if the download fails.
+
+### Rendering Optimizations
+- **Text Caching**: Implemented surface caching for all menu buttons and static title text, eliminating redundant `font.render` calls every frame.
+
 ## 9. Concept 1 Menu Overhaul (Phase 10)
 ### Modern Mobile Arcade Layout
 - **Layout Hierarchy**: Redesigned Main Menu for a wide 800x400 window:
@@ -161,3 +173,23 @@ This document serves as a structural reference for the changes made during the v
 
 ### Rendering Optimizations
 - **Text Caching**: Implemented surface caching for all menu buttons and static title text, eliminating redundant `font.render` calls every frame.
+
+## 10. Premium Shop Overhaul & Pre-Game Sequence (Phase 11)
+### Modern Skin Shop Redesign
+- **Grid Layout**: Replaced the linear skin list with a modern grid (2 columns, 3 rows) starting at `(420, 150)`.
+- **Preview Pedestal**: Added a dedicated preview area on the left `(200, 220)` featuring an animated snake that showcases the currently highlighted theme in real-time.
+- **Rarity Tiers**: Implemented rarity-based border coloring for skin cards:
+    - **Common**: `COLOR_RARITY_COMMON`
+    - **Epic**: `COLOR_RARITY_EPIC`
+    - **Legendary**: `COLOR_RARITY_LEGENDARY`
+- **Smart Action Buttons**: Integrated context-aware buttons on each card that dynamically change based on skin status:
+    - `Buy [Cost] pts`: For locked skins.
+    - `Equip`: For owned but inactive skins.
+    - `Equipped`: For the currently active skin.
+    - `🔒 Locked`: For skins gated behind achievements.
+
+### Pre-Game Countdown Sequence
+- **Countdown State**: Introduced a `COUNTDOWN` state that pauses gameplay logic immediately after mode selection.
+- **Visual Sequence**: Renders a massive "3... 2... 1... GO!" sequence in the center of the screen.
+- **Dynamic Animation**: Implemented a scale-pulsing effect where numbers scale from 1.5x down to 1.0x every second, creating a high-energy transition into the match.
+- **State Transition**: Once the "GO!" timer expires, the game automatically transitions to the `PLAYING` state.
