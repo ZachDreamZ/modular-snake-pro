@@ -1,29 +1,80 @@
 # Changelog
 
-## [0.0.3] - 2026-06-04
+## [0.0.7] - 2026-04-06
 ### Added
-- Dynamic Difficulty Scaling: Movement tick-rate now increases progressively with the score.
-- Golden Apple Power-up: Rare high-value food with unique visuals and bonus points (+5).
-- Persistent Save System: Local high score tracking implemented via `save_data.json`.
-- Integrated "Best Score" display on Main Menu and Game Over screens.
-- Upgraded Playtest Bot to validate speed scaling and high score persistence.
+- Weighted food spawning system (6 food types with configurable probabilities)
+- 3 new achievements: Combo Master, Point Collector, Unstoppable (8 total)
+- Objectives system: 5 objectives with reward points and persistence
+- Contextual hints for first-time players and mode introductions
+- Persistent stats tracking (games played, boss wins, food eaten, max combo)
+- Stats, Achievements, and Objectives screens in the menu
+- Time Rush HUD timer display with low-time warning
+- Config-based balancing parameters (FOOD_SCORES, spawn weights, combo thresholds)
+- 10 new playtest bot tests for v0.0.7 features (25 tests total)
 
-## [0.0.2] - 2026-06-04
 ### Changed
-- Refactored asset pipeline: reorganized assets into assets/images, assets/sfx, assets/bgm, assets/fonts, and assets/screenshots; added idempotent migration logic to move legacy files.
-- Implemented AssetManager singleton with caching for images, sounds and fonts; added robust path fallbacks and generated placeholder surfaces for missing images.
-- Reskinned UI with a dark premium theme: rounded corners, hover/press glow, improved typography and subtle animated markers.
-- Updated the automated playtest bot to use cached AssetManager names, capture runtime screenshots to assets/screenshots/, and validate UI bounding boxes.
-- Added snapshot automation and an expanded diagnostic matrix for end-to-end QA; fixed ShopUI grid selection bug.
+- Menu navigation expanded with Stats -> Achievements/Objectives flow
+- Food spawning uses weighted random selection instead of hardcoded ratios
+- Leaderboard now shows stage information
+- Localization expanded with 15 new keys
 
 ### Fixed
-- Improved sound/image path fallback to avoid run-time asset failures (missing apple.png now handled).
-- Minor dead-code/log cleanup and safer mixer/font fallbacks for headless/CI environments.
+- Mode select back button stability
+- Shield collision handling in boss battles
+- Attribute errors on rapid state transitions
 
-## [0.0.1] - 2026-06-04
+## [0.0.6] - 2026-03-30
 ### Added
-- Initial Modular Architecture.
-- Menu Overhaul (Concept 1 layout).
-- Audio Integration.
-- Premium Skin Shop.
-- Vision-Based Automated QA Testing Bot (Dev-Only).
+- Settings system with Music, SFX, Font Scale, Colorblind Mode, Language
+- Font scaling (1.0x to 1.5x) for accessibility
+- Colorblind support (Protanopia, Deuteranopia, Tritanopia palettes)
+- Localization framework with JSON-based system
+- Mod loading system for custom themes
+- Advanced analytics (session tracking, death analysis, theme usage)
+
+### Changed
+- All hardcoded strings replaced with localization keys
+- Theme application integrated with mod system
+- Settings persist to settings.json
+
+## [0.0.5] - 2026-03-20
+### Added
+- Boss battle system with Mecha-Snake Boss
+- Combo system with multiplier and frenzy mode
+- Ghost mode for body collision immunity
+- Void Walker achievement for Maze Hell mode
+- Stage progression with obstacle generation
+- Dynamic difficulty scaling
+- Particle effects for food collection
+
+### Changed
+- Enhanced AI snake pathfinding
+- Improved visual effects and animations
+
+## [0.0.4] - 2026-03-10
+### Added
+- Maze Hell game mode
+- Shop system with theme purchases
+- Leaderboard functionality
+- Time Rush game mode
+- AI Snake opponent
+
+## [0.0.3] - 2026-03-01
+### Added
+- Multiple food types (golden, poison, shield, missile, ghost)
+- Stage system with obstacle generation
+- Basic achievement system (First Blood, Marathon, Dragon Slayer, Speed Demon)
+
+## [0.0.2] - 2026-02-20
+### Added
+- Basic gameplay loop
+- Snake movement and collision
+- Food collection
+- Score tracking
+- High score persistence
+
+## [0.0.1] - 2026-02-15
+### Added
+- Initial project setup
+- Pygame initialization
+- Basic window rendering
