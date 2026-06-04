@@ -1,3 +1,5 @@
+VERSION = "0.0.1"
+
 # Constants
 SCREEN_WIDTH = 800
 SCREEN_HEIGHT = 400
