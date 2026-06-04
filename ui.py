@@ -71,15 +71,17 @@ class Button:
     def is_clicked(self, mouse_pos):
         return self.rect.collidepoint(mouse_pos)
 
+_font_cache = {}
+
 def draw_text(surface, text, size, x, y, color, font=None):
     if font is None:
-        font = pygame.font.SysFont("Arial", size, bold=True)
+        key = (size, "Arial", True)
+        if key not in _font_cache:
+            _font_cache[key] = pygame.font.SysFont("Arial", size, bold=True)
+        font = _font_cache[key]
     
-    shadow_surf = font.render(text, True, (0, 0, 0))
-    shadow_rect = shadow_surf.get_rect(center=(x + 2, y + 2))
-    surface.blit(shadow_surf, shadow_rect)
-    
-    text_surf = font.render(text, True, color)
+    # Use anti-alias=False for sharper pixel-art style text and to avoid smearing artifacts
+    text_surf = font.render(text, False, color)
     text_rect = text_surf.get_rect(center=(x, y))
     surface.blit(text_surf, text_rect)
 

@@ -91,7 +91,7 @@ class Food:
             pygame.draw.circle(surface, COLOR_PLASMA_BLUE, center, BLOCK_SIZE // 2 + pulse, 2)
             pygame.draw.circle(surface, (255, 255, 255), center, BLOCK_SIZE // 4)
         elif self.type == "normal":
-            sprite = load_food_sprite("assets/apple.png")
+            sprite = load_food_sprite("assets/images/apple.png")
             if sprite:
                 # Scale sprite to BLOCK_SIZE
                 scaled_sprite = pygame.transform.scale(sprite, (BLOCK_SIZE, BLOCK_SIZE))
