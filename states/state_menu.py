@@ -6,6 +6,7 @@ import ui
 class MenuState:
     def __init__(self):
         self.sub_state = "MENU"
+        self.particles = []
 
     def handle_events(self, manager, events):
         mx, my = pygame.mouse.get_pos()
@@ -70,12 +71,52 @@ class MenuState:
     def update(self, manager):
         if self.sub_state == "MENU":
             manager.menu_snake.update()
+            
+            # Ambient particle drift
+            if len(self.particles) < 30:
+                self.particles.append({
+                    "pos": [random.randint(0, SCREEN_WIDTH), random.randint(0, SCREEN_HEIGHT)],
+                    "vel": [random.uniform(-0.5, 0.5), random.uniform(-1.0, -0.2)],
+                    "size": random.randint(2, 5),
+                    "alpha": random.randint(50, 150)
+                })
+            
+            for p in self.particles[:]:
+                p["pos"][0] += p["vel"][0]
+                p["pos"][1] += p["vel"][1]
+                if p["pos"][1] < -10:
+                    self.particles.remove(p)
 
     def draw(self, manager, offset_x, offset_y):
         if self.sub_state == "MENU":
             manager.screen.blit(manager.menu_overlay, (0, 0))
-            manager.screen.blit(manager.title_surf, (SCREEN_WIDTH // 2 - manager.title_surf.get_width() // 2, 100))
+            
+            # 1. Draw ambient particles
+            for p in self.particles:
+                p_surf = pygame.Surface((p["size"]*2, p["size"]*2), pygame.SRCALPHA)
+                pygame.draw.circle(p_surf, (255, 255, 255, p["alpha"]), (p["size"], p["size"]), p["size"])
+                manager.screen.blit(p_surf, (p["pos"][0], p["pos"][1]))
+
+            # 2. High Score Banner (Top)
+            banner_rect = pygame.Rect(SCREEN_WIDTH // 2 - 150, 30, 300, 40)
+            pygame.draw.rect(manager.screen, (40, 40, 40), banner_rect, border_radius=20)
+            pygame.draw.rect(manager.screen, COLOR_GOLD if 'COLOR_GOLD' in globals() else (255, 215, 0), banner_rect, 2, border_radius=20)
+            
+            top_score = manager.highscore if manager.highscore else 0
+            ui.draw_text(manager.screen, f"TOP SCORE: {top_score}", FONT_SIZE_TINY, SCREEN_WIDTH // 2, 50, COLOR_WHITE, manager.small_font)
+
+            # 3. Stylized Title Card
+            title_rect = pygame.Rect(SCREEN_WIDTH // 2 - 250, 80, 500, 100)
+            pygame.draw.rect(manager.screen, (20, 20, 20, 150), title_rect, border_radius=15)
+            pygame.draw.rect(manager.screen, (60, 60, 60), title_rect, 2, border_radius=15)
+            
+            # Draw Title
+            manager.screen.blit(manager.title_surf, (SCREEN_WIDTH // 2 - manager.title_surf.get_width() // 2, 110))
+            
+            # 4. Draw buttons
             for btn in manager.menu_buttons:
+                # Ensure buttons update their hover/press state
+                btn.update(pygame.mouse.get_pos(), pygame.mouse.get_pressed())
                 btn.draw(manager.screen)
             
             # Draw menu snake

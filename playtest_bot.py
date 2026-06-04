@@ -138,30 +138,35 @@ class PlaytestBot:
     def test_ui_and_shop(self):
         print("\n--- Testing UI & Shop ---")
         try:
-            # Test Button Hover
+            # Test Button Hover & Press
             btn = self.manager.menu_buttons[0] # PLAY button
-            # Place mouse in center of button
             mouse_pos = (btn.rect.centerx, btn.rect.centery)
-            btn.update(mouse_pos)
+            
+            # 1. Test Hover
+            btn.update(mouse_pos, (False, False, False))
             if btn.is_hovered:
                 self.log("UI_HOVER_EFFECTS", True, f"Button {btn.text} hover detected")
             else:
                 self.log("UI_HOVER_EFFECTS", False, f"Button {btn.text} hover failed")
-
+            
+            # 2. Test Press
+            btn.update(mouse_pos, (True, False, False))
+            if btn.is_pressed:
+                self.log("UI_HOVER_EFFECTS", True, f"Button {btn.text} press detected")
+            else:
+                self.log("UI_HOVER_EFFECTS", False, f"Button {btn.text} press failed")
+        
             # Test Shop Purchase Logic
             shop_ui = self.manager.shop_ui
-            # We need to know where a card is. 
-            # First card is at (grid_start_x, grid_start_y)
             mx = shop_ui.grid_start_x + 10
             my = shop_ui.grid_start_y + 10
             
-            # Mock the purchase by calling handle_click
             index = shop_ui.handle_click(mx, my, self.manager.theme_keys)
             if index is not None:
                 self.log("SHOP_PURCHASE_LOGIC", True, f"Shop card {index} clicked successfully")
             else:
                 self.log("SHOP_PURCHASE_LOGIC", False, "Shop card click failed")
-
+        
         except Exception as e:
             self.log("UI_HOVER_EFFECTS", False, f"Exception during UI test: {e}")
 
@@ -187,6 +192,7 @@ class PlaytestBot:
         self.manager.change_state("MENU")
         self.manager.draw()
         self.take_snapshot("menu")
+        pygame.image.save(self.screen, "audit_menu_makeover.png")
         
         self.manager.change_state("SHOP")
         self.manager.draw()

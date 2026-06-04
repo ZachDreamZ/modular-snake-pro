@@ -14,26 +14,44 @@ class Button:
         self.font = font
         self.hover_sound = hover_sound
         self.is_hovered = False
+        self.is_pressed = False
         
         # Cache text surface
         self.text_surf = self.font.render(self.text, True, (255, 255, 255))
 
-    def update(self, mouse_pos):
+    def update(self, mouse_pos, mouse_buttons=(False, False, False)):
         if self.rect.collidepoint(mouse_pos):
             if not self.is_hovered:
                 if self.hover_sound:
                     assets.sound_manager.play(self.hover_sound)
                 self.is_hovered = True
+            
+            if mouse_buttons[0]: # Left click
+                self.is_pressed = True
+            else:
+                self.is_pressed = False
         else:
             self.is_hovered = False
+            self.is_pressed = False
 
     def draw(self, surface):
-        draw_rect = self.rect
-        color = self.color
-        
-        if self.is_hovered:
-            draw_rect = self.rect.inflate(8, 8)
+        # Determine visual state
+        if self.is_pressed:
+            draw_rect = self.rect.inflate(-4, -4)
+            color = [max(0, c - 30) for c in self.hover_color] # Darken hover color
+        elif self.is_hovered:
+            draw_rect = self.rect.inflate(10, 10)
             color = self.hover_color
+        else:
+            draw_rect = self.rect
+            color = self.color
+        
+        # Draw outer glow if hovered and not pressed
+        if self.is_hovered and not self.is_pressed:
+            glow_rect = draw_rect.inflate(6, 6)
+            # Draw a soft glow using a slightly lighter version of the color
+            glow_color = [min(255, c + 40) for c in color]
+            pygame.draw.rect(surface, glow_color, glow_rect, 2, border_radius=14)
         
         # Draw button body with rounded corners
         pygame.draw.rect(surface, color, draw_rect, border_radius=12)
@@ -42,6 +60,13 @@ class Button:
         # Draw cached text
         text_rect = self.text_surf.get_rect(center=draw_rect.center)
         surface.blit(self.text_surf, text_rect)
+
+        # Sleek animated cursor marker next to the highlighted button text
+        if self.is_hovered and not self.is_pressed:
+            t = pygame.time.get_ticks() / 150
+            offset = math.sin(t) * 4
+            marker_rect = pygame.Rect(draw_rect.left + 10, draw_rect.top + 10 + offset, 4, draw_rect.height - 20)
+            pygame.draw.rect(surface, (255, 255, 255), marker_rect, border_radius=2)
 
     def is_clicked(self, mouse_pos):
         return self.rect.collidepoint(mouse_pos)
