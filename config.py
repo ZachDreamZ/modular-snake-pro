@@ -1,4 +1,4 @@
-VERSION = "0.0.3" # Verified
+VERSION = "0.0.5" # Verified
 
 # Constants
 SCREEN_WIDTH = 800
@@ -123,6 +123,17 @@ THEMES = {
         "food_poison": (128, 0, 128),
         "required_achievement": "Speed Demon",
         "rarity": "legendary"
+    },
+    "void": {
+        "name": "The Void",
+        "bg_color": (15, 0, 25),
+        "snake_color": (180, 0, 255),
+        "snake_color_dark": (40, 0, 60),
+        "food_normal": (0, 255, 255),
+        "food_golden": (255, 255, 0),
+        "food_poison": (255, 0, 255),
+        "required_achievement": "Void Walker",
+        "rarity": "legendary"
     }
 }
 
@@ -136,3 +147,4 @@ FONT_SIZE_TINY = 12
 FOOD_NORMAL = "normal"
 FOOD_GOLDEN = "golden"
 FOOD_POISON = "poison"
+FOOD_GHOST = "ghost"

@@ -81,6 +81,10 @@ class GameplayState:
         elif manager.state == "PLAYING":
             if manager.shield_timer > 0: manager.shield_timer -= 1
             if manager.invulnerability_timer > 0: manager.invulnerability_timer -= 1
+            if manager.ghost_timer > 0: manager.ghost_timer -= 1
+            if manager.frenzy_timer > 0: manager.frenzy_timer -= 1
+            if manager.combo_timer > 0: manager.combo_timer -= 1
+            else: manager.combo_count = 0
             if manager.shield_timer <= 0: manager.snake.has_shield = False
             if manager.current_mode == MODE_TIME_RUSH:
                 manager.time_rush_timer -= 1 / manager.game_speed
@@ -94,7 +98,7 @@ class GameplayState:
             collision = False
             if (head[0] < 0 or head[0] >= SCREEN_WIDTH or head[1] < 0 or head[1] >= SCREEN_HEIGHT):
                 collision = True
-            elif head in manager.snake.body[1:]:
+            elif head in manager.snake.body[1:] and manager.ghost_timer <= 0:
                 collision = True
             elif head in manager.ai_snake.body:
                 collision = True
@@ -120,13 +124,26 @@ class GameplayState:
 
     def handle_food_eat(self, manager):
         self.check_achievements(manager)
+        
+        # Combo Logic
+        if manager.food.type != "poison":
+            manager.combo_count += 1
+            manager.combo_timer = 60
+            if manager.combo_count >= 10 and manager.frenzy_timer <= 0:
+                manager.frenzy_timer = 300
+                manager.trigger_toast("FRENZY MODE!")
+        else:
+            manager.combo_count = 0
+
+        multiplier = 1.0 + (manager.combo_count // 5) * 0.2
+        
         if manager.food.type == "normal":
             game_assets.sound_manager.play("eat")
-            manager.score += 10
+            manager.score += int(10 * multiplier)
             if manager.current_mode == MODE_TIME_RUSH: manager.time_rush_timer += 3
         elif manager.food.type == "golden":
             game_assets.sound_manager.play("powerup")
-            manager.score += 15  # Base 10 + Bonus 5
+            manager.score += int(15 * multiplier)
             manager.snake.body.append(manager.snake.body[-1])
         elif manager.food.type == "poison":
             game_assets.sound_manager.play("crash")
@@ -140,14 +157,22 @@ class GameplayState:
             game_assets.sound_manager.play("powerup")
             head = manager.snake.body[0]
             manager.projectiles.append(Projectile(head[0] + BLOCK_SIZE//2, head[1] + BLOCK_SIZE//2, manager.snake.direction))
-            manager.score += 20
+            manager.score += int(20 * multiplier)
+        elif manager.food.type == "ghost":
+            game_assets.sound_manager.play("powerup")
+            manager.ghost_timer = 300
+            manager.trigger_toast("GHOST MODE!")
+            manager.score += int(10 * multiplier)
+
         manager.food_eaten_this_stage += 1
         manager.update_stage()
         self.create_burst(manager, manager.food.pos, manager.theme["food_normal"])
         boss_body = manager.boss.body if manager.boss else None
         manager.food.spawn(manager.snake.body, manager.ai_snake.body, manager.obstacles, boss_body)
-        # Dynamic Difficulty: Speed increases every 50 points
-        manager.game_speed = min(20, 10 + manager.score // 50)
+        
+        # Dynamic Difficulty: Non-linear speed scaling
+        # Every 50 points, but with diminishing returns
+        manager.game_speed = min(20, 10 + int(math.sqrt(manager.score / 5)))
 
     def handle_ai_food_eat(self, manager):
         if manager.food.type == "golden": manager.ai_snake.body.append(manager.ai_snake.body[-1])
@@ -188,6 +213,7 @@ class GameplayState:
         if "Marathon" not in manager.unlocked_achievements and manager.score >= 500: new_unlocks.append("Marathon")
         if "Dragon Slayer" not in manager.unlocked_achievements and manager.state == "VICTORY": new_unlocks.append("Dragon Slayer")
         if "Speed Demon" not in manager.unlocked_achievements and manager.current_mode == MODE_TIME_RUSH and manager.survival_timer >= 120: new_unlocks.append("Speed Demon")
+        if "Void Walker" not in manager.unlocked_achievements and manager.current_mode == MODE_MAZE_HELL and manager.survival_timer >= 120: new_unlocks.append("Void Walker")
         for ach in new_unlocks:
             manager.unlocked_achievements.append(ach)
             manager.trigger_toast(f"ACHIEVEMENT UNLOCKED: {ach}")
@@ -235,7 +261,7 @@ class GameplayState:
             if len(manager.boss_hazards) > 15: manager.boss_hazards.pop(0)
         collision = False
         if (head[0] < 0 or head[0] >= SCREEN_WIDTH or head[1] < 0 or head[1] >= SCREEN_HEIGHT): collision = True
-        elif head in manager.snake.body[1:]: collision = True
+        elif head in manager.snake.body[1:] and manager.ghost_timer <= 0: collision = True
         elif head in manager.boss.body: collision = True
         elif head in manager.boss_hazards: collision = True
         if collision:
@@ -266,6 +292,16 @@ class GameplayState:
             for p in manager.particles: p.draw(manager.screen)
             ui.draw_text(manager.screen, f"Score: {manager.score}", FONT_SIZE_SMALL, 60, 30, COLOR_WHITE)
             ui.draw_text(manager.screen, f"Stage: {manager.stage}", FONT_SIZE_SMALL, 160, 30, COLOR_WHITE)
+            
+            if manager.combo_count > 1:
+                ui.draw_text(manager.screen, f"Combo: {manager.combo_count}x", FONT_SIZE_SMALL, 60, 60, COLOR_YELLOW)
+            
+            if manager.ghost_timer > 0:
+                ui.draw_text(manager.screen, "GHOST MODE", FONT_SIZE_SMALL, 60, 90, (200, 230, 255))
+            
+            if manager.frenzy_timer > 0:
+                ui.draw_text(manager.screen, "FRENZY MODE", FONT_SIZE_SMALL, 60, 120, (255, 0, 0))
+                
             if manager.state == "PAUSED": ui.draw_overlay(manager.screen, "PAUSED", "Press ESC to Resume | Q to Menu")
         
         elif manager.state == "BOSS_BATTLE":
@@ -286,6 +322,15 @@ class GameplayState:
                 ui.draw_text(manager.screen, "MECHA-SNAKE BOSS", FONT_SIZE_MEDIUM, SCREEN_WIDTH // 2, y - 15, COLOR_BOSS_GOLD)
             ui.draw_text(manager.screen, f"Score: {manager.score}", FONT_SIZE_SMALL, 60, 30, COLOR_WHITE)
             ui.draw_text(manager.screen, f"Stage: {manager.stage}", FONT_SIZE_SMALL, 160, 30, COLOR_WHITE)
+            
+            if manager.combo_count > 1:
+                ui.draw_text(manager.screen, f"Combo: {manager.combo_count}x", FONT_SIZE_SMALL, 60, 60, COLOR_YELLOW)
+            
+            if manager.ghost_timer > 0:
+                ui.draw_text(manager.screen, "GHOST MODE", FONT_SIZE_SMALL, 60, 90, (200, 230, 255))
+            
+            if manager.frenzy_timer > 0:
+                ui.draw_text(manager.screen, "FRENZY MODE", FONT_SIZE_SMALL, 60, 120, (255, 0, 0))
         
         elif manager.state == "GAMEOVER":
             import save_manager

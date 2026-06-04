@@ -74,7 +74,9 @@ class Food:
                         self.type = "shield"
                     elif rand < 0.15:
                         self.type = "golden"
-                    elif rand < 0.25:
+                    elif rand < 0.20:
+                        self.type = "ghost"
+                    elif rand < 0.30:
                         self.type = "poison"
                     else:
                         self.type = "normal"
@@ -133,6 +135,11 @@ class Food:
             ox = center[0] + math.cos(orb_angle) * (BLOCK_SIZE // 2)
             oy = center[1] + math.sin(orb_angle) * (BLOCK_SIZE // 2)
             pygame.draw.circle(surface, (200, 200, 255), (int(ox), int(oy)), 2)
+        elif self.type == "ghost":
+            # Pale ghostly orb
+            pulse = (math.sin(ticks * 0.005) + 1) * 2
+            pygame.draw.circle(surface, (200, 230, 255), center, BLOCK_SIZE // 2 + pulse, 1)
+            pygame.draw.circle(surface, (220, 240, 255), center, BLOCK_SIZE // 4)
         else:
             pygame.draw.rect(surface, (255, 255, 255), (self.pos[0], self.pos[1], BLOCK_SIZE, BLOCK_SIZE))
 

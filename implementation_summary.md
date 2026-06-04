@@ -1,17 +1,33 @@
-# Implementation Summary
+# Implementation Summary - Version 0.0.5
 
-## Automated release pipeline
-- Added `.github/workflows/release.yml` to build a Windows `.exe` on tags matching `v*`.
-- The workflow checks out the repo, sets up Python 3.11, installs dependencies from `requirements.txt`, and builds the executable with PyInstaller using `main.py` and the `assets` directory.
-- The release job publishes the generated `.exe` to GitHub Releases and uses `body_path: CHANGELOG.md` so the release notes are automatically populated from the project changelog.
+## Objective
+The goal of Phase 22 (v0.0.5) was to expand gameplay depth, improve player experience through polish, and validate long-term stability.
 
-## Dependency and hygiene updates
-- Added `requirements.txt` with `pygame` and `pyinstaller` for the release build.
-- Added `dist/`, `build/`, `__pycache__/`, and common Python-generated files to `.gitignore` to prevent local artifacts from being committed.
+## Changes Implemented
 
-## v0.0.3 Advanced Mechanics
-- **Dynamic Difficulty Scaling**: Implemented a score-based speed increase in `states/state_gameplay.py`, increasing tick-rate every 50 points up to a cap of 20.
-- **Golden Apple Power-up**: Enhanced the `golden` food type with a bonus point value (+15) and integrated unique sound effects.
-- **Persistent Save System**: Created `save_manager.py` for handling high score persistence using `save_data.json`.
-- **UI Integration**: Added "Best Score" displays to the Main Menu and Game Over screens.
-- **QA Validation**: Upgraded `playtest_bot.py` to verify speed scaling, high score persistence, and power-up values, ensuring 100% test coverage for new mechanics.
+### 1. Gameplay Polish & Balancing
+- **Non-Linear Difficulty**: Changed speed scaling from linear (`score // 50`) to a square-root based formula (`10 + sqrt(score / 5)`). This ensures the game remains challenging but doesn't become impossible at high scores.
+- **Combo System**: Implemented a combo counter and timer. Eating food consecutively now grants a score multiplier that increases by 0.2x every 5 eats.
+
+### 2. Content Expansion
+- **Ghost Mode**: 
+    - Added `FOOD_GHOST` type.
+    - Eating ghost food grants a 5-second window where the snake can pass through its own body.
+- **Frenzy Mode**:
+    - Added a "Frenzy" state triggered by maintaining a 10-combo streak.
+    - Provides visual feedback and high-scoring potential.
+- **New Achievement & Reward**:
+    - **Void Walker**: Unlocked by surviving 120 seconds in Maze Hell mode.
+    - **The Void Theme**: A new legendary theme unlocked via the Void Walker achievement.
+- **Visual Feedback**: Added dynamic UI text to notify the player of active Combos, Ghost Mode, and Frenzy Mode.
+
+### 3. Stability & QA
+- **Enhanced Playtest Bot**: Updated the diagnostic bot to perform:
+    - 50+ full game cycles to detect memory leaks or crashes.
+    - 100+ save/load operations to verify persistence stability.
+    - Targeted validation of all v0.0.5 mechanics (Combo, Ghost, Frenzy, Void Walker).
+- **Executable Validation**: Successfully built a standalone executable using PyInstaller.
+- **QA Reporting**: Generated comprehensive reports on stability, performance, balance, and playtesting.
+
+## Final Status
+The system is verified as stable, balanced, and feature-complete for version 0.0.5. All automated tests passed.

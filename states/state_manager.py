@@ -42,6 +42,10 @@ class StateManager:
         self.game_speed = 10
         self.shield_timer = 0
         self.invulnerability_timer = 0
+        self.combo_count = 0
+        self.combo_timer = 0
+        self.ghost_timer = 0
+        self.frenzy_timer = 0
         self.highscore = game_assets.load_high_score()
         self.total_points = game_assets.load_total_points()
         
@@ -152,6 +156,10 @@ class StateManager:
         self.game_speed = mode_cfg["base_speed"]
         self.time_rush_timer = mode_cfg["timer"] if mode_cfg["timer"] else 0
         self.survival_timer = 0
+        self.combo_count = 0
+        self.combo_timer = 0
+        self.ghost_timer = 0
+        self.frenzy_timer = 0
 
     def start_countdown(self):
         self.countdown_timer = 180 # 3 seconds at 60fps
