@@ -267,3 +267,19 @@ This document serves as a structural reference for the changes made during the v
 - **Updated Test Matrix**: Expanded `UI_HOVER_EFFECTS` to verify both hover and pressed states programmatically.
 - **Vision QA Harness**: Configured the bot to capture `audit_menu_makeover.png` specifically for layout verification.
 - **Automated Validation**: Verified the complete loop from Menu hover/click through to the gameplay state.
+
+## 15. Production Build & Release (Phase 17)
+### Versioning & Documentation
+- **Global Versioning**: Established version `v0.0.1` in `config.py` and initialized a structured `CHANGELOG.md` to track project milestones.
+- **Visual Documentation**: Leveraged the `playtest_bot.py` to generate high-fidelity runtime snapshots of the Main Menu, Skin Shop, Gameplay, and Boss Battle. These were organized into `assets/screenshots/` and embedded into a professional `README.md`.
+
+### Repository Infrastructure
+- **Git Integration**: Initialized a local Git repository with a comprehensive `.gitignore` file to exclude build artifacts (`build/`, `dist/`), Python caches (`__pycache__/`), and local diagnostic snapshots, while ensuring production assets and documentation are tracked.
+
+### Production Compilation
+- **Standalone Executable**: Compiled the game into a single, windowed production binary (`main.exe`) using PyInstaller.
+- **Build Segregation**: Enforced a strict separation between development and production environments. The compiled binary targets `main.py` exclusively, completely stripping the `playtest_bot.py` and all automated testing hooks to ensure a raw, manual player experience.
+
+### Release Verification
+- **Raw Binary Audit**: Verified that the compiled `.exe` boots successfully, respects all asset paths, and remains completely idle awaiting manual player input.
+- **Dev-Loop Integrity**: Confirmed that the local `playtest_bot.py` remains fully functional for future QA cycles.
