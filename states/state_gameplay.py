@@ -126,7 +126,7 @@ class GameplayState:
             if manager.current_mode == MODE_TIME_RUSH: manager.time_rush_timer += 3
         elif manager.food.type == "golden":
             assets.sound_manager.play("powerup")
-            manager.score += 30
+            manager.score += 15  # Base 10 + Bonus 5
             manager.snake.body.append(manager.snake.body[-1])
         elif manager.food.type == "poison":
             assets.sound_manager.play("crash")
@@ -146,7 +146,8 @@ class GameplayState:
         self.create_burst(manager, manager.food.pos, manager.theme["food_normal"])
         boss_body = manager.boss.body if manager.boss else None
         manager.food.spawn(manager.snake.body, manager.ai_snake.body, manager.obstacles, boss_body)
-        manager.game_speed = min(20, 10 + manager.score // 100)
+        # Dynamic Difficulty: Speed increases every 50 points
+        manager.game_speed = min(20, 10 + manager.score // 50)
 
     def handle_ai_food_eat(self, manager):
         if manager.food.type == "golden": manager.ai_snake.body.append(manager.ai_snake.body[-1])
@@ -175,8 +176,9 @@ class GameplayState:
         return True
 
     def trigger_game_over(self, manager):
+        import save_manager
         assets.sound_manager.play("crash")
-        assets.update_score(manager.score)
+        save_manager.save_high_score(manager.score)
         if assets.check_high_score(manager.score): manager.change_state("HIGH_SCORE_ENTRY")
         else: manager.change_state("GAMEOVER")
 
@@ -286,9 +288,12 @@ class GameplayState:
             ui.draw_text(manager.screen, f"Stage: {manager.stage}", FONT_SIZE_SMALL, 160, 30, COLOR_WHITE)
         
         elif manager.state == "GAMEOVER":
+            import save_manager
             ui.draw_panel(manager.screen, SCREEN_WIDTH // 4, 50, SCREEN_WIDTH // 2, SCREEN_HEIGHT - 100)
             ui.draw_text(manager.screen, "GAME OVER", FONT_SIZE_HUGE, SCREEN_WIDTH // 2, SCREEN_HEIGHT // 4, (255, 0, 0))
             ui.draw_text(manager.screen, f"Final Score: {manager.score}", FONT_SIZE_MEDIUM, SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2, COLOR_WHITE)
+            best_score = save_manager.get_high_score()
+            ui.draw_text(manager.screen, f"Best Score: {best_score}", FONT_SIZE_SMALL, SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 30, COLOR_YELLOW)
             ui.draw_text(manager.screen, "Press ENTER to Restart | Q for Menu", FONT_SIZE_SMALL, SCREEN_WIDTH // 2, SCREEN_HEIGHT * 3 // 4, COLOR_WHITE)
         
         elif manager.state == "COUNTDOWN":

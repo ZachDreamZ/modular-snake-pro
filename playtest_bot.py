@@ -2,6 +2,7 @@ import pygame
 import sys
 import os
 import assets
+import save_manager
 from config import *
 from states.state_manager import StateManager
 from entities import Snake, Food, Boss
@@ -49,7 +50,8 @@ class PlaytestBot:
             "UI_HOVER_EFFECTS": False,
             "SHOP_PURCHASE_LOGIC": False,
             "BOSS_SPAWN_LOGIC": False,
-            "SNAPSHOTS_CREATED": False
+            "SNAPSHOTS_CREATED": False,
+            "V003_MECHANICS": False
         }
         
         self.logs = []
@@ -220,6 +222,48 @@ class PlaytestBot:
         except Exception as e:
             self.log("BOSS_SPAWN_LOGIC", False, f"Exception during boss test: {e}")
 
+    def test_v003_mechanics(self):
+        print("\n--- Testing v0.0.3 Advanced Mechanics ---")
+        try:
+            # 1. Test Dynamic Difficulty
+            self.manager.reset_game()
+            initial_speed = self.manager.game_speed
+            self.manager.score = 100
+            # Trigger speed update (usually happens in handle_food_eat)
+            # Since we are mocking, we can manually check the logic or trigger a mock eat
+            from states.state_gameplay import GameplayState
+            gs = GameplayState()
+            self.manager.food.type = "normal"
+            gs.handle_food_eat(self.manager)
+            
+            if self.manager.game_speed > initial_speed:
+                self.log("V003_MECHANICS", True, f"Difficulty scaled: {initial_speed} -> {self.manager.game_speed}")
+            else:
+                self.log("V003_MECHANICS", False, "Difficulty scaling failed")
+                return
+
+            # 2. Test Golden Apple
+            self.manager.score = 0
+            self.manager.food.type = "golden"
+            gs.handle_food_eat(self.manager)
+            if self.manager.score == 15:
+                self.log("V003_MECHANICS", True, "Golden Apple gave correct bonus points (+15)")
+            else:
+                self.log("V003_MECHANICS", False, f"Golden Apple points failed: {self.manager.score}")
+                return
+
+            # 3. Test Persistent Save
+            test_high_score = 9999
+            save_manager.save_high_score(test_high_score)
+            if save_manager.get_high_score() == test_high_score:
+                self.log("V003_MECHANICS", True, "High score persistence verified")
+            else:
+                self.log("V003_MECHANICS", False, "High score persistence failed")
+                return
+
+        except Exception as e:
+            self.log("V003_MECHANICS", False, f"Exception during v0.0.3 test: {e}")
+
     def run_full_suite(self):
         print("🚀 STARTING COMPREHENSIVE DIAGNOSTIC PLAYTEST BOT 🚀")
         
@@ -252,6 +296,9 @@ class PlaytestBot:
         self.test_boss_system()
         self.manager.draw()
         self.take_snapshot("boss")
+        
+        # 6. v0.0.3 Advanced Mechanics
+        self.test_v003_mechanics()
         
         self.log("SNAPSHOTS_CREATED", True, "All runtime snapshots captured")
         

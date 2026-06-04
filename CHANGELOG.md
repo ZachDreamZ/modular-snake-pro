@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.0.3] - 2026-06-04
+### Added
+- Dynamic Difficulty Scaling: Movement tick-rate now increases progressively with the score.
+- Golden Apple Power-up: Rare high-value food with unique visuals and bonus points (+5).
+- Persistent Save System: Local high score tracking implemented via `save_data.json`.
+- Integrated "Best Score" display on Main Menu and Game Over screens.
+- Upgraded Playtest Bot to validate speed scaling and high score persistence.
+
 ## [0.0.2] - 2026-06-04
 ### Changed
 - Refactored asset pipeline: reorganized assets into assets/images, assets/sfx, assets/bgm, assets/fonts, and assets/screenshots; added idempotent migration logic to move legacy files.

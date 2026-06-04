@@ -102,7 +102,8 @@ class MenuState:
             pygame.draw.rect(manager.screen, (40, 40, 40), banner_rect, border_radius=20)
             pygame.draw.rect(manager.screen, COLOR_GOLD if 'COLOR_GOLD' in globals() else (255, 215, 0), banner_rect, 2, border_radius=20)
             
-            top_score = manager.highscore if manager.highscore else 0
+            import save_manager
+            top_score = save_manager.get_high_score()
             ui.draw_text(manager.screen, f"TOP SCORE: {top_score}", FONT_SIZE_TINY, SCREEN_WIDTH // 2, 50, COLOR_WHITE, manager.small_font)
 
             # 3. Stylized Title Card
