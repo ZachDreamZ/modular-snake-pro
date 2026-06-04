@@ -81,8 +81,22 @@ class SoundManager:
 
     def set_music(self, enabled):
         self.music_enabled = enabled
-        # In a real game, we'd call pygame.mixer.music.pause()/unpause()
+        pygame.mixer.music.set_volume(1.0 if enabled else 0.0)
         print(f"Music {'enabled' if enabled else 'disabled'}")
+
+    def play_music(self, filename, loop=-1):
+        try:
+            pygame.mixer.music.load(filename)
+            pygame.mixer.music.play(loop)
+            pygame.mixer.music.set_volume(1.0 if self.music_enabled else 0.0)
+        except Exception as e:
+            print(f"Error loading music {filename}: {e}")
+
+    def stop_music(self):
+        pygame.mixer.music.stop()
+
+    def fade_music(self, duration=1000):
+        pygame.mixer.music.fadeout(duration)
 
     def set_sfx(self, enabled):
         self.sfx_enabled = enabled

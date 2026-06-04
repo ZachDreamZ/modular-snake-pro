@@ -21,7 +21,25 @@ This document serves as a structural reference for the changes made during the v
 - **Poison Food**: Purple circle with outward-pointing spikes.
 - **Shield Power-up**: Glossy blue crystal shield emblem with a revolving orbital particle.
 
-## 3. State & UI Overhaul (`states.py`)
+## 3. Structural Refactoring & UI Modularization (`ui.py`, `states.py`)
+- **UI Module**: Extracted the `Button` class and core rendering helpers (`draw_text`, `draw_panel`, `draw_overlay`) into a dedicated `ui.py` module to improve codebase maintainability.
+- **Shop UI Logic**: Moved the Skin Shop's grid rendering and interaction logic into a `ShopUI` class within `ui.py`, decoupling the shop's visual layout from the main state management.
+- **Typography Hierarchy**: Standardized all text using a proportional hierarchy:
+    - **Huge**: Titles and major alerts.
+    - **Medium**: Primary buttons and HUD elements.
+    - **Small**: Descriptive text and labels.
+    - **Tiny**: Detailed costs and secondary status.
+- **Input Mapping**: All movement and navigation now support both **WASD** and **Arrow Keys** identically.
+- **Shop Navigation**: `W/Up` and `S/Down` now navigate the theme list.
+- **Pause Control**: Gameplay can be paused/resumed using `ESC` or `P`.
+- **Visuals**:
+    - **Checkered Board**: Replaced the solid background fill in `StateManager.draw` with an alternating grid of slate gray and muted forest green squares.
+    - **UI Readability (Panels)**: Introduced `draw_panel` to create translucent black overlays (alpha 100-150) behind menus, preventing text from bleeding into the checkered background.
+    - **Card-based Modals**: The Shop, Leaderboard, and Game Over screens now render as distinct centered "cards" over the background.
+    - **Text Polish**: Updated drop-shadows to pure black `(0,0,0)` for a crisp, high-contrast effect on the HUD and menus.
+- **Dynamic Main Menu**:
+    - **Title Animation**: The "SNAKE GRADIENT" title now oscillates vertically using a sine wave.
+    - **Background Flair**: A dummy AI snake now infinitely slithers in the background of the Title Menu.
 ### Input Mapping
 - **Dual-Input**: All movement and navigation now support both **WASD** and **Arrow Keys** identically.
 - **Shop Navigation**: `W/Up` and `S/Down` now navigate the theme list.

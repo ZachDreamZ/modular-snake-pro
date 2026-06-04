@@ -3,48 +3,8 @@ import random
 import math
 from config import *
 import assets
+import ui
 from entities import Snake, AISnake, Food, Particle, Boss, Projectile
-
-class Button:
-    def __init__(self, text, x, y, width, height, color, hover_color, font, hover_sound=None):
-        self.text = text
-        self.rect = pygame.Rect(x - width // 2, y - height // 2, width, height)
-        self.color = color
-        self.hover_color = hover_color
-        self.font = font
-        self.hover_sound = hover_sound
-        self.is_hovered = False
-        
-        # Cache text surface
-        self.text_surf = self.font.render(self.text, True, (255, 255, 255))
-
-    def update(self, mouse_pos):
-        if self.rect.collidepoint(mouse_pos):
-            if not self.is_hovered:
-                if self.hover_sound:
-                    assets.sound_manager.play(self.hover_sound)
-                self.is_hovered = True
-        else:
-            self.is_hovered = False
-
-    def draw(self, surface):
-        draw_rect = self.rect
-        color = self.color
-        
-        if self.is_hovered:
-            draw_rect = self.rect.inflate(8, 8)
-            color = self.hover_color
-        
-        # Draw button body with rounded corners
-        pygame.draw.rect(surface, color, draw_rect, border_radius=12)
-        pygame.draw.rect(surface, (0, 0, 0), draw_rect, 3, border_radius=12)
-        
-        # Draw cached text
-        text_rect = self.text_surf.get_rect(center=draw_rect.center)
-        surface.blit(self.text_surf, text_rect)
-
-    def is_clicked(self, mouse_pos):
-        return self.rect.collidepoint(mouse_pos)
 
 class StateManager:
     def __init__(self, screen, clock):
@@ -118,25 +78,30 @@ class StateManager:
 
         # Load Premium Font
         try:
-            self.pixel_font = pygame.font.Font("assets/fonts/PressStart2P-Regular.ttf", 24)
-            self.title_font = pygame.font.Font("assets/fonts/PressStart2P-Regular.ttf", 32)
-            self.small_font = pygame.font.Font("assets/fonts/PressStart2P-Regular.ttf", 12)
+            self.pixel_font = pygame.font.Font("assets/fonts/PressStart2P-Regular.ttf", FONT_SIZE_MEDIUM)
+            self.title_font = pygame.font.Font("assets/fonts/PressStart2P-Regular.ttf", FONT_SIZE_HUGE)
+            self.small_font = pygame.font.Font("assets/fonts/PressStart2P-Regular.ttf", FONT_SIZE_TINY)
         except Exception as e:
             print(f"Font loading failed: {e}")
-            self.pixel_font = pygame.font.SysFont("Arial", 24, bold=True)
-            self.title_font = pygame.font.SysFont("Arial", 32, bold=True)
-            self.small_font = pygame.font.SysFont("Arial", 12, bold=True)
+            self.pixel_font = pygame.font.SysFont("Arial", FONT_SIZE_MEDIUM, bold=True)
+            self.title_font = pygame.font.SysFont("Arial", FONT_SIZE_HUGE, bold=True)
+            self.small_font = pygame.font.SysFont("Arial", FONT_SIZE_TINY, bold=True)
 
         # Translucent Menu Canvas
         self.menu_overlay = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.SRCALPHA)
         self.menu_overlay.fill((0, 0, 0, 150))
     
-        # Premium Menu Buttons (Concept 1 Layout)
+        # UI Components
+        self.shop_ui = ui.ShopUI()
+        
+        # Start Background Music
+        assets.sound_manager.play_music("assets/bgm_main.wav")
+        
         self.menu_buttons = [
-            Button("PLAY", SCREEN_WIDTH // 2, 200, 200, 50, (57, 255, 20), (150, 255, 100), self.pixel_font, "click"),
-            Button("SHOP", 300, 260, 180, 50, (112, 128, 144), (160, 170, 180), self.pixel_font, "click"),
-            Button("SETTINGS", 500, 260, 180, 50, (112, 128, 144), (160, 170, 180), self.pixel_font, "click"),
-            Button("LEADERBOARD", SCREEN_WIDTH // 2, 320, 200, 50, (112, 128, 144), (160, 170, 180), self.pixel_font, "click"),
+            ui.Button("PLAY", SCREEN_WIDTH // 2, 200, 200, 50, (57, 255, 20), (150, 255, 100), self.pixel_font, "click"),
+            ui.Button("SHOP", 300, 260, 180, 50, (112, 128, 144), (160, 170, 180), self.pixel_font, "click"),
+            ui.Button("SETTINGS", 500, 260, 180, 50, (112, 128, 144), (160, 170, 180), self.pixel_font, "click"),
+            ui.Button("LEADERBOARD", SCREEN_WIDTH // 2, 320, 200, 50, (112, 128, 144), (160, 170, 180), self.pixel_font, "click"),
         ]
         
         # Cache static menu text surfaces
@@ -167,10 +132,6 @@ class StateManager:
         self.countdown_timer = 180 # 3 seconds at 60fps
         self.change_state("COUNTDOWN")
 
-    def get_text_rect(self, text, size, x, y):
-        font = pygame.font.SysFont("Arial", size, bold=True)
-        text_surf = font.render(text, True, (0,0,0))
-        return text_surf.get_rect(center=(x, y))
 
     def handle_events(self, events):
         mouse_pos = pygame.mouse.get_pos()
@@ -219,7 +180,7 @@ class StateManager:
                     if event.button == 1:
                         mx, my = pygame.mouse.get_pos()
                         for i in range(len(GAME_MODES)):
-                            rect = self.get_text_rect(list(GAME_MODES.values())[i]["name"], 24, SCREEN_WIDTH // 2, (SCREEN_HEIGHT // 3) + i * 60)
+                            rect = ui.get_text_rect(list(GAME_MODES.values())[i]["name"], FONT_SIZE_MEDIUM, SCREEN_WIDTH // 2, (SCREEN_HEIGHT // 3) + i * 60)
                             if rect.collidepoint(mx, my):
                                 self.mode_index = i
                                 mode_key = list(GAME_MODES.keys())[i]
@@ -281,7 +242,7 @@ class StateManager:
                             if rect.collidepoint(mx, my):
                                 self.name_cursor = i
                                 self.cycle_name_char(1)
-                        submit_rect = self.get_text_rect("Press ENTER to Save", 18, SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 60)
+                        submit_rect = ui.get_text_rect("Press ENTER to Save", FONT_SIZE_SMALL, SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 60)
                         if submit_rect.collidepoint(mx, my):
                             self.save_final_high_score()
                             self.change_state("MENU")
@@ -293,7 +254,7 @@ class StateManager:
                         self.change_state("MENU")
                 if event.type == pygame.MOUSEBUTTONDOWN:
                     if event.button == 1:
-                        back_rect = self.get_text_rect("Press ESC to Return", 18, SCREEN_WIDTH // 2, SCREEN_HEIGHT * 5 // 6)
+                        back_rect = ui.get_text_rect("Press ESC to Return", FONT_SIZE_SMALL, SCREEN_WIDTH // 2, SCREEN_HEIGHT * 5 // 6)
                         if back_rect.collidepoint(pygame.mouse.get_pos()):
                             self.change_state("MENU")
 
@@ -348,31 +309,26 @@ class StateManager:
                     if event.button == 1:
                         mx, my = pygame.mouse.get_pos()
                         # Grid click handling
-                        grid_start_x, grid_start_y = 450, 100
-                        card_w, card_h = 120, 80
-                        for i, theme_key in enumerate(self.theme_keys):
-                            col = i % 2
-                            row = i // 2
-                            card_rect = pygame.Rect(grid_start_x + col * (card_w + 20), grid_start_y + row * (card_h + 20), card_w, card_h)
-                            if card_rect.collidepoint(mx, my):
-                                self.shop_index = i
-                                # Smart Button Action
-                                is_unlocked = theme_key in self.unlocked_themes
-                                req_ach = THEMES[theme_key].get("required_achievement")
-                                if req_ach and req_ach not in self.unlocked_achievements:
-                                    self.trigger_toast(f"Locked! Requires: {req_ach}")
-                                elif is_unlocked:
-                                    self.theme = THEMES[theme_key]
-                                elif self.total_points >= self.theme_costs[theme_key]:
-                                    self.total_points -= self.theme_costs[theme_key]
-                                    assets.save_total_points(self.total_points)
-                                    self.unlocked_themes.append(theme_key)
-                                    assets.save_unlocked_themes(self.unlocked_themes)
-                                else:
-                                    self.trigger_toast("Not enough points!")
-                                break
+                        clicked_index = self.shop_ui.handle_click(mx, my, self.theme_keys)
+                        if clicked_index is not None:
+                            self.shop_index = clicked_index
+                            theme_key = self.theme_keys[clicked_index]
+                            # Smart Button Action
+                            is_unlocked = theme_key in self.unlocked_themes
+                            req_ach = THEMES[theme_key].get("required_achievement")
+                            if req_ach and req_ach not in self.unlocked_achievements:
+                                self.trigger_toast(f"Locked! Requires: {req_ach}")
+                            elif is_unlocked:
+                                self.theme = THEMES[theme_key]
+                            elif self.total_points >= self.theme_costs[theme_key]:
+                                self.total_points -= self.theme_costs[theme_key]
+                                assets.save_total_points(self.total_points)
+                                self.unlocked_themes.append(theme_key)
+                                assets.save_unlocked_themes(self.unlocked_themes)
+                            else:
+                                self.trigger_toast("Not enough points!")
                         # Back button
-                        if self.get_text_rect("Press ESC to Return", 18, SCREEN_WIDTH // 2, SCREEN_HEIGHT * 5 // 6).collidepoint(mx, my):
+                        if ui.get_text_rect("Press ESC to Return", FONT_SIZE_SMALL, SCREEN_WIDTH // 2, SCREEN_HEIGHT * 5 // 6).collidepoint(mx, my):
                             self.change_state("MENU")
 
     def update(self):
@@ -576,67 +532,17 @@ class StateManager:
             self.menu_snake.draw(self.screen)
             self.screen.blit(self.menu_overlay, (0, 0))
             oscillation = int(math.sin(pygame.time.get_ticks() / 300) * 10)
-            self.draw_text("SNAKE GRADIENT", 32, SCREEN_WIDTH // 2, 80 + oscillation, COLOR_WHITE, font=self.title_font)
-            self.draw_text(f"High Score: {self.highscore}  |  Stage: {self.stage}", 12, SCREEN_WIDTH // 2, 120, COLOR_WHITE, font=self.small_font)
+            ui.draw_text(self.screen, "SNAKE GRADIENT", FONT_SIZE_HUGE, SCREEN_WIDTH // 2, 80 + oscillation, COLOR_WHITE, font=self.title_font)
+            ui.draw_text(self.screen, f"High Score: {self.highscore}  |  Stage: {self.stage}", FONT_SIZE_TINY, SCREEN_WIDTH // 2, 120, COLOR_WHITE, font=self.small_font)
             for btn in self.menu_buttons: btn.draw(self.screen)
         
         elif self.state == "SHOP":
-            self.draw_panel(50, 50, SCREEN_WIDTH - 100, SCREEN_HEIGHT - 100)
-            self.draw_text("PREMIUM SKIN SHOP", 48, SCREEN_WIDTH // 2, 80, COLOR_WHITE)
-            self.draw_text(f"Wallet: {self.total_points} pts", 18, SCREEN_WIDTH // 2, 120, COLOR_YELLOW)
+            ui.draw_panel(self.screen, 50, 50, SCREEN_WIDTH - 100, SCREEN_HEIGHT - 100)
+            ui.draw_text(self.screen, "PREMIUM SKIN SHOP", FONT_SIZE_HUGE, SCREEN_WIDTH // 2, 80, COLOR_WHITE)
+            ui.draw_text(self.screen, f"Wallet: {self.total_points} pts", FONT_SIZE_SMALL, SCREEN_WIDTH // 2, 120, COLOR_YELLOW)
             
-            # Preview Pedestal
-            pedestal_x, pedestal_y = 200, 220
-            pygame.draw.ellipse(self.screen, (40, 40, 40), (pedestal_x-80, pedestal_y, 160, 60))
-            pygame.draw.ellipse(self.screen, (60, 60, 60), (pedestal_x-60, pedestal_y-10, 120, 40))
-            
-            # Animated Preview Snake
-            preview_theme = THEMES[self.theme_keys[self.shop_index]]
-            preview_snake = Snake((pedestal_x, pedestal_y), preview_theme["snake_color"], preview_theme["snake_color_dark"])
-            # Make it move in a circle
-            t = pygame.time.get_ticks() / 500
-            preview_snake.body = [(pedestal_x + math.cos(t+i*0.3)*30, pedestal_y + math.sin(t+i*0.3)*20) for i in range(5)]
-            preview_snake.draw(self.screen)
-            self.draw_text("PREVIEW", 14, pedestal_x, pedestal_y + 70, COLOR_GREY)
-
-            # Skin Grid
-            grid_start_x, grid_start_y = 420, 150
-            card_w, card_h = 130, 90
-            for i, theme_key in enumerate(self.theme_keys):
-                col = i % 2
-                row = i // 2
-                cx = grid_start_x + col * (card_w + 20)
-                cy = grid_start_y + row * (card_h + 20)
-                rect = pygame.Rect(cx, cy, card_w, card_h)
-                
-                # Rarity Color
-                rarity = THEMES[theme_key].get("rarity", "common")
-                border_color = COLOR_RARITY_COMMON if rarity == "common" else COLOR_RARITY_EPIC if rarity == "epic" else COLOR_RARITY_LEGENDARY
-                
-                # Highlighted card
-                bg_color = (60, 60, 60) if i == self.shop_index else (30, 30, 30)
-                pygame.draw.rect(self.screen, bg_color, rect, border_radius=10)
-                pygame.draw.rect(self.screen, border_color, rect, 3, border_radius=10)
-                
-                # Theme Name
-                self.draw_text(THEMES[theme_key]["name"], 14, cx + card_w // 2, cy + 25, COLOR_WHITE)
-                
-                # Smart Button
-                is_unlocked = theme_key in self.unlocked_themes
-                is_equipped = self.theme == THEMES[theme_key]
-                req_ach = THEMES[theme_key].get("required_achievement")
-                
-                btn_text = "Equipped" if is_equipped else ("Equip" if is_unlocked else f"{self.theme_costs[theme_key]} pts")
-                btn_color = COLOR_GREEN if is_unlocked and not is_equipped else COLOR_GREY if is_equipped else COLOR_YELLOW
-                if req_ach and req_ach not in self.unlocked_achievements:
-                    btn_text = "🔒 Locked"
-                    btn_color = COLOR_SNAKE_DARK if 'COLOR_SNAKE_DARK' in globals() else (50, 50, 50)
-
-                btn_rect = pygame.Rect(cx + 15, cy + 45, card_w - 30, 30)
-                pygame.draw.rect(self.screen, btn_color, btn_rect, border_radius=5)
-                self.draw_text(btn_text, 12, btn_rect.centerx, btn_rect.centery, COLOR_BLACK)
-
-            self.draw_text("S: Back to Menu", 18, SCREEN_WIDTH // 2, SCREEN_HEIGHT - 60, COLOR_WHITE)
+            self.shop_ui.draw(self.screen, self)
+            ui.draw_text(self.screen, "S: Back to Menu", FONT_SIZE_SMALL, SCREEN_WIDTH // 2, SCREEN_HEIGHT - 60, COLOR_WHITE)
         
         elif self.state == "PLAYING" or self.state == "PAUSED":
             for obs in self.obstacles:
@@ -645,9 +551,9 @@ class StateManager:
             self.snake.draw(self.screen)
             self.ai_snake.draw(self.screen)
             for p in self.particles: p.draw(self.screen)
-            self.draw_text(f"Score: {self.score}", 18, 60, 30, COLOR_WHITE)
-            self.draw_text(f"Stage: {self.stage}", 18, 160, 30, COLOR_WHITE)
-            if self.state == "PAUSED": self.draw_overlay("PAUSED", "Press ESC to Resume | Q to Menu")
+            ui.draw_text(self.screen, f"Score: {self.score}", FONT_SIZE_SMALL, 60, 30, COLOR_WHITE)
+            ui.draw_text(self.screen, f"Stage: {self.stage}", FONT_SIZE_SMALL, 160, 30, COLOR_WHITE)
+            if self.state == "PAUSED": ui.draw_overlay(self.screen, "PAUSED", "Press ESC to Resume | Q to Menu")
 
         elif self.state == "BOSS_BATTLE":
             for hz in self.boss_hazards:
@@ -664,66 +570,46 @@ class StateManager:
                 health_w = int(bar_width * (self.boss.health / self.boss.max_health))
                 pygame.draw.rect(self.screen, COLOR_BOSS_RED, (x, y, health_w, bar_height))
                 pygame.draw.rect(self.screen, COLOR_WHITE, (x, y, bar_width, bar_height), 2)
-                self.draw_text("MECHA-SNAKE BOSS", 20, SCREEN_WIDTH // 2, y - 15, COLOR_BOSS_GOLD)
-            self.draw_text(f"Score: {self.score}", 18, 60, 30, COLOR_WHITE)
-            self.draw_text(f"Stage: {self.stage}", 18, 160, 30, COLOR_WHITE)
+                ui.draw_text(self.screen, "MECHA-SNAKE BOSS", FONT_SIZE_MEDIUM, SCREEN_WIDTH // 2, y - 15, COLOR_BOSS_GOLD)
+            ui.draw_text(self.screen, f"Score: {self.score}", FONT_SIZE_SMALL, 60, 30, COLOR_WHITE)
+            ui.draw_text(self.screen, f"Stage: {self.stage}", FONT_SIZE_SMALL, 160, 30, COLOR_WHITE)
         
         elif self.state == "GAMEOVER":
-            self.draw_panel(SCREEN_WIDTH // 4, 50, SCREEN_WIDTH // 2, SCREEN_HEIGHT - 100)
-            self.draw_text("GAME OVER", 48, SCREEN_WIDTH // 2, SCREEN_HEIGHT // 4, (255, 0, 0))
-            self.draw_text(f"Final Score: {self.score}", 24, SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2, COLOR_WHITE)
-            self.draw_text("Press ENTER to Restart | Q for Menu", 18, SCREEN_WIDTH // 2, SCREEN_HEIGHT * 3 // 4, COLOR_WHITE)
+            ui.draw_panel(self.screen, SCREEN_WIDTH // 4, 50, SCREEN_WIDTH // 2, SCREEN_HEIGHT - 100)
+            ui.draw_text(self.screen, "GAME OVER", FONT_SIZE_HUGE, SCREEN_WIDTH // 2, SCREEN_HEIGHT // 4, (255, 0, 0))
+            ui.draw_text(self.screen, f"Final Score: {self.score}", FONT_SIZE_MEDIUM, SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2, COLOR_WHITE)
+            ui.draw_text(self.screen, "Press ENTER to Restart | Q for Menu", FONT_SIZE_SMALL, SCREEN_WIDTH // 2, SCREEN_HEIGHT * 3 // 4, COLOR_WHITE)
         
         elif self.state == "COUNTDOWN":
             scale_factor = 1.0 + (self.countdown_timer % 45) / 45 * 0.5
-            self.draw_text(self.countdown_text, int(64 * scale_factor), SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2, COLOR_WHITE)
+            ui.draw_text(self.screen, self.countdown_text, int(FONT_SIZE_HUGE * scale_factor), SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2, COLOR_WHITE)
         elif self.state == "HIGH_SCORE_ENTRY":
             self.draw_name_entry()
         elif self.state == "SETTINGS":
-            self.draw_panel(SCREEN_WIDTH // 4, 50, SCREEN_WIDTH // 2, SCREEN_HEIGHT - 100)
-            self.draw_text("SETTINGS", 48, SCREEN_WIDTH // 2, SCREEN_HEIGHT // 6, COLOR_WHITE)
+            ui.draw_panel(self.screen, SCREEN_WIDTH // 4, 50, SCREEN_WIDTH // 2, SCREEN_HEIGHT - 100)
+            ui.draw_text(self.screen, "SETTINGS", FONT_SIZE_HUGE, SCREEN_WIDTH // 2, SCREEN_HEIGHT // 6, COLOR_WHITE)
             music_enabled = self.settings.get("music", True)
             music_color = (0, 200, 0) if music_enabled else (200, 0, 0)
             music_rect = pygame.Rect(SCREEN_WIDTH // 2 - 100, SCREEN_HEIGHT // 3, 200, 50)
             pygame.draw.rect(self.screen, music_color, music_rect, 2)
-            self.draw_text(f"MUSIC: {'ON' if music_enabled else 'OFF'}", 24, SCREEN_WIDTH // 2, music_rect.centery, COLOR_WHITE)
+            ui.draw_text(self.screen, f"MUSIC: {'ON' if music_enabled else 'OFF'}", FONT_SIZE_MEDIUM, SCREEN_WIDTH // 2, music_rect.centery, COLOR_WHITE)
             sfx_enabled = self.settings.get("sfx", True)
             sfx_color = (0, 200, 0) if sfx_enabled else (200, 0, 0)
             sfx_rect = pygame.Rect(SCREEN_WIDTH // 2 - 100, SCREEN_HEIGHT // 3 + 80, 200, 50)
             pygame.draw.rect(self.screen, sfx_color, sfx_rect, 2)
-            self.draw_text(f"SFX: {'ON' if sfx_enabled else 'OFF'}", 24, SCREEN_WIDTH // 2, sfx_rect.centery, COLOR_WHITE)
-            self.draw_text("Press ESC to Return", 18, SCREEN_WIDTH // 2, SCREEN_HEIGHT * 5 // 6, COLOR_WHITE)
+            ui.draw_text(self.screen, f"SFX: {'ON' if sfx_enabled else 'OFF'}", FONT_SIZE_MEDIUM, SCREEN_WIDTH // 2, sfx_rect.centery, COLOR_WHITE)
+            ui.draw_text(self.screen, "Press ESC to Return", FONT_SIZE_SMALL, SCREEN_WIDTH // 2, SCREEN_HEIGHT * 5 // 6, COLOR_WHITE)
         elif self.state == "LEADERBOARD":
-            self.draw_panel(SCREEN_WIDTH // 4, 50, SCREEN_WIDTH // 2, SCREEN_HEIGHT - 100)
+            ui.draw_panel(self.screen, SCREEN_WIDTH // 4, 50, SCREEN_WIDTH // 2, SCREEN_HEIGHT - 100)
             self.draw_leaderboard()
         
         if self.active_toast:
             toast_w, toast_h = 300, 50
             tx = SCREEN_WIDTH - toast_w // 2 - 100
             ty = 20 + self.toast_offset_y
-            self.draw_panel(tx, ty, toast_w, toast_h, alpha=180)
-            self.draw_text(f"🏆 {self.active_toast}", 16, tx + toast_w // 2, ty + toast_h // 2, COLOR_YELLOW)
+            ui.draw_panel(self.screen, tx, ty, toast_w, toast_h, alpha=180)
+            ui.draw_text(self.screen, f"🏆 {self.active_toast}", FONT_SIZE_SMALL, tx + toast_w // 2, ty + toast_h // 2, COLOR_YELLOW)
 
-    def draw_text(self, text, size, x, y, color, font=None):
-        if font is None: font = pygame.font.SysFont("Arial", size, bold=True)
-        shadow_surf = font.render(text, True, (0, 0, 0))
-        shadow_rect = shadow_surf.get_rect(center=(x + 2, y + 2))
-        self.screen.blit(shadow_surf, shadow_rect)
-        text_surf = font.render(text, True, color)
-        text_rect = text_surf.get_rect(center=(x, y))
-        self.screen.blit(text_surf, text_rect)
-
-    def draw_panel(self, x, y, w, h, alpha=150):
-        panel = pygame.Surface((w, h), pygame.SRCALPHA)
-        panel.fill((0, 0, 0, alpha))
-        self.screen.blit(panel, (x, y))
-
-    def draw_overlay(self, title, subtitle):
-        overlay = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.SRCALPHA)
-        overlay.fill((0, 0, 0, 150))
-        self.screen.blit(overlay, (0, 0))
-        self.draw_text(title, 64, SCREEN_WIDTH // 2, SCREEN_HEIGHT // 3, COLOR_WHITE)
-        self.draw_text(subtitle, 24, SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2, COLOR_WHITE)
 
     def start_boss_battle(self):
         self.change_state("BOSS_BATTLE")
@@ -783,23 +669,23 @@ class StateManager:
         self.change_state("VICTORY")
 
     def draw_victory(self):
-        self.draw_overlay("VICTORY!", f"Boss Defeated! Bonus 1000 pts\nTotal Score: {self.score}")
-        self.draw_text("Press ENTER to return to Menu", 18, SCREEN_WIDTH // 2, SCREEN_HEIGHT * 3 // 4, COLOR_WHITE)
+        ui.draw_overlay(self.screen, "VICTORY!", f"Boss Defeated! Bonus 1000 pts\nTotal Score: {self.score}")
+        ui.draw_text(self.screen, "Press ENTER to return to Menu", FONT_SIZE_SMALL, SCREEN_WIDTH // 2, SCREEN_HEIGHT * 3 // 4, COLOR_WHITE)
 
     def draw_name_entry(self):
-        self.draw_text("NEW HIGH SCORE!", 48, SCREEN_WIDTH // 2, SCREEN_HEIGHT // 4, COLOR_YELLOW)
+        ui.draw_text(self.screen, "NEW HIGH SCORE!", FONT_SIZE_HUGE, SCREEN_WIDTH // 2, SCREEN_HEIGHT // 4, COLOR_YELLOW)
         for i in range(3):
             color = COLOR_YELLOW if i == self.name_cursor else COLOR_WHITE
             rect = pygame.Rect(SCREEN_WIDTH // 2 - 60 + i * 40, SCREEN_HEIGHT // 2 - 20, 35, 40)
             pygame.draw.rect(self.screen, color, rect, 2)
-            self.draw_text(self.player_name[i], 24, rect.centerx, rect.centery, color)
-        self.draw_text("Use Arrows/WASD to edit | ENTER to Save", 18, SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 60, COLOR_WHITE)
+            ui.draw_text(self.screen, self.player_name[i], FONT_SIZE_MEDIUM, rect.centerx, rect.centery, color)
+        ui.draw_text(self.screen, "Use Arrows/WASD to edit | ENTER to Save", FONT_SIZE_SMALL, SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 60, COLOR_WHITE)
 
     def draw_leaderboard(self):
-        self.draw_text("TOP 5 SCORES", 48, SCREEN_WIDTH // 2, SCREEN_HEIGHT // 6, COLOR_YELLOW)
+        ui.draw_text(self.screen, "TOP 5 SCORES", FONT_SIZE_HUGE, SCREEN_WIDTH // 2, SCREEN_HEIGHT // 6, COLOR_YELLOW)
         leaderboard = assets.load_leaderboard()
         for i, entry in enumerate(leaderboard):
             text = f"{i+1}. {entry['name']} - Score: {entry['score']} (Stage {entry['stage']})"
-            self.draw_text(text, 20, SCREEN_WIDTH // 2, (SCREEN_HEIGHT // 3) + i * 40, COLOR_WHITE)
-        if not leaderboard: self.draw_text("No scores yet!", 18, SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2, COLOR_WHITE)
-        self.draw_text("Press ESC to Return", 18, SCREEN_WIDTH // 2, SCREEN_HEIGHT * 5 // 6, COLOR_WHITE)
+            ui.draw_text(self.screen, text, FONT_SIZE_MEDIUM, SCREEN_WIDTH // 2, (SCREEN_HEIGHT // 3) + i * 40, COLOR_WHITE)
+        if not leaderboard: ui.draw_text(self.screen, "No scores yet!", FONT_SIZE_SMALL, SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2, COLOR_WHITE)
+        ui.draw_text(self.screen, "Press ESC to Return", FONT_SIZE_SMALL, SCREEN_WIDTH // 2, SCREEN_HEIGHT * 5 // 6, COLOR_WHITE)
