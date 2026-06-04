@@ -1,4 +1,4 @@
-VERSION = "0.0.5" # Verified
+VERSION = "0.0.6" # Verified
 
 # Constants
 SCREEN_WIDTH = 800
@@ -53,7 +53,41 @@ COLOR_YELLOW = (255, 255, 0)  # Golden Food
 COLOR_PURPLE = (128, 0, 128)  # Poison Food
 COLOR_GREY = (128, 128, 128)  # Obstacles
 COLOR_BLUE = (0, 0, 255)      # AI Snake
+COLOR_GOLD = (255, 215, 0)    # Gold
 COLOR_DARK_BLUE = (0, 0, 150) # AI Snake Dark
+
+# Accessibility: Colorblind Palettes
+# Mapping: (Normal, Protanopia, Deuteranopia, Tritanopia)
+COLORBLIND_PALETTES = {
+    "none": {
+        "green": (0, 255, 0),
+        "red": (255, 0, 0),
+        "yellow": (255, 255, 0),
+        "purple": (128, 0, 128),
+        "blue": (0, 0, 255),
+    },
+    "protanopia": {
+        "green": (180, 180, 0),
+        "red": (150, 100, 0),
+        "yellow": (255, 255, 0),
+        "purple": (100, 100, 180),
+        "blue": (0, 0, 255),
+    },
+    "deuteranopia": {
+        "green": (180, 180, 0),
+        "red": (200, 100, 0),
+        "yellow": (255, 255, 0),
+        "purple": (120, 120, 180),
+        "blue": (0, 0, 255),
+    },
+    "tritanopia": {
+        "green": (0, 255, 0),
+        "red": (255, 0, 0),
+        "yellow": (255, 100, 100),
+        "purple": (128, 0, 128),
+        "blue": (0, 255, 255),
+    }
+}
 COLOR_BOSS_RED = (220, 20, 60) # Crimson for Boss
 COLOR_BOSS_GOLD = (255, 215, 0) # Gold for Boss
 COLOR_PLASMA_BLUE = (0, 255, 255) # Projectile color

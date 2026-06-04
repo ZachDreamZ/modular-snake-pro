@@ -2,8 +2,13 @@ import pygame
 import game_assets
 from config import *
 from states.state_manager import StateManager
+import mod_manager
+from analytics_manager import analytics
 
 def main():
+    # Log session start for analytics
+    analytics.log_session_start()
+    
     # Automatically download required game assets
     game_assets.download_assets()
 

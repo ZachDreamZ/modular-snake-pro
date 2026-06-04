@@ -5,6 +5,8 @@ from config import *
 import game_assets
 import ui
 from entities import Snake, AISnake, Food, Particle, Boss, Projectile
+from localization_manager import loc
+from analytics_manager import analytics
 
 class GameplayState:
     def __init__(self):
@@ -65,7 +67,8 @@ class GameplayState:
                             if rect.collidepoint(mx, my):
                                 manager.name_cursor = i
                                 self.cycle_name_char(manager, 1)
-                        submit_rect = ui.get_text_rect("Press ENTER to Save", FONT_SIZE_SMALL, SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 60)
+                        submit_text = loc.get_text("save_hint")
+                        submit_rect = ui.get_text_rect(submit_text, FONT_SIZE_SMALL, SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 60)
                         if submit_rect.collidepoint(mx, my):
                             self.save_final_high_score(manager)
                             manager.change_state("MENU")
@@ -76,7 +79,7 @@ class GameplayState:
             if manager.countdown_timer > 135: manager.countdown_text = "3"
             elif manager.countdown_timer > 90: manager.countdown_text = "2"
             elif manager.countdown_timer > 45: manager.countdown_text = "1"
-            elif manager.countdown_timer > 0: manager.countdown_text = "GO!"
+            elif manager.countdown_timer > 0: manager.countdown_text = loc.get_text("countdown_go")
             else: manager.change_state("PLAYING")
         elif manager.state == "PLAYING":
             if manager.shield_timer > 0: manager.shield_timer -= 1
@@ -90,22 +93,27 @@ class GameplayState:
                 manager.time_rush_timer -= 1 / manager.game_speed
                 manager.survival_timer += 1 / manager.game_speed
                 if manager.time_rush_timer <= 0:
-                    self.trigger_game_over(manager)
+                    self.trigger_game_over(manager, "timer")
                     return
             head = manager.snake.update()
             manager.ai_snake.update_ai_logic(manager.food.pos)
             ai_head = manager.ai_snake.update()
             collision = False
+            cause = "wall"
             if (head[0] < 0 or head[0] >= SCREEN_WIDTH or head[1] < 0 or head[1] >= SCREEN_HEIGHT):
                 collision = True
+                cause = "wall"
             elif head in manager.snake.body[1:] and manager.ghost_timer <= 0:
                 collision = True
+                cause = "self"
             elif head in manager.ai_snake.body:
                 collision = True
+                cause = "self"
             elif head in manager.obstacles:
                 collision = True
+                cause = "wall"
             if collision:
-                if self.handle_collision(manager): return
+                if self.handle_collision(manager, cause): return
             if ai_head in manager.snake.body:
                 manager.score += 50
                 self.reset_ai_snake(manager)
@@ -131,7 +139,7 @@ class GameplayState:
             manager.combo_timer = 60
             if manager.combo_count >= 10 and manager.frenzy_timer <= 0:
                 manager.frenzy_timer = 300
-                manager.trigger_toast("FRENZY MODE!")
+                manager.trigger_toast(loc.get_text("frenzy_mode"))
         else:
             manager.combo_count = 0
 
@@ -161,7 +169,7 @@ class GameplayState:
         elif manager.food.type == "ghost":
             game_assets.sound_manager.play("powerup")
             manager.ghost_timer = 300
-            manager.trigger_toast("GHOST MODE!")
+            manager.trigger_toast(loc.get_text("ghost_mode"))
             manager.score += int(10 * multiplier)
 
         manager.food_eaten_this_stage += 1
@@ -187,7 +195,7 @@ class GameplayState:
         for _ in range(count):
             manager.particles.append(Particle(pos[0], pos[1], color))
 
-    def handle_collision(self, manager):
+    def handle_collision(self, manager, cause):
         if manager.invulnerability_timer > 0: return False
         if manager.snake.has_shield:
             manager.snake.has_shield = False
@@ -197,13 +205,14 @@ class GameplayState:
             return False
         self.create_burst(manager, manager.snake.body[0], COLOR_BOSS_RED, count=30)
         manager.shake_amount = 15
-        self.trigger_game_over(manager)
+        self.trigger_game_over(manager, cause)
         return True
 
-    def trigger_game_over(self, manager):
+    def trigger_game_over(self, manager, cause="wall"):
         import save_manager
         game_assets.sound_manager.play("crash")
         save_manager.save_high_score(manager.score)
+        analytics.log_game_end(manager.score, cause)
         if game_assets.check_high_score(manager.score): manager.change_state("HIGH_SCORE_ENTRY")
         else: manager.change_state("GAMEOVER")
 
@@ -216,7 +225,7 @@ class GameplayState:
         if "Void Walker" not in manager.unlocked_achievements and manager.current_mode == MODE_MAZE_HELL and manager.survival_timer >= 120: new_unlocks.append("Void Walker")
         for ach in new_unlocks:
             manager.unlocked_achievements.append(ach)
-            manager.trigger_toast(f"ACHIEVEMENT UNLOCKED: {ach}")
+            manager.trigger_toast(loc.get_text("achievement_unlocked") + ach)
         if new_unlocks: game_assets.save_achievements(manager.unlocked_achievements)
 
     def cycle_name_char(self, manager, direction):
@@ -278,6 +287,7 @@ class GameplayState:
         manager.score += 1000
         manager.total_points += 1000
         game_assets.save_total_points(manager.total_points)
+        analytics.log_game_end(manager.score, "victory")
         manager.shake_amount = 20
         manager.victory_timer = 120
         manager.change_state("VICTORY")
@@ -290,19 +300,19 @@ class GameplayState:
             manager.snake.draw(manager.screen)
             manager.ai_snake.draw(manager.screen)
             for p in manager.particles: p.draw(manager.screen)
-            ui.draw_text(manager.screen, f"Score: {manager.score}", FONT_SIZE_SMALL, 60, 30, COLOR_WHITE)
-            ui.draw_text(manager.screen, f"Stage: {manager.stage}", FONT_SIZE_SMALL, 160, 30, COLOR_WHITE)
+            ui.draw_text(manager.screen, f"{loc.get_text('score_label')}{manager.score}", FONT_SIZE_SMALL, 60, 30, COLOR_WHITE, font_multiplier=manager.settings.get("font_scale", 1.0), settings=manager.settings)
+            ui.draw_text(manager.screen, f"{loc.get_text('stage_label')}{manager.stage}", FONT_SIZE_SMALL, 160, 30, COLOR_WHITE, font_multiplier=manager.settings.get("font_scale", 1.0), settings=manager.settings)
             
             if manager.combo_count > 1:
-                ui.draw_text(manager.screen, f"Combo: {manager.combo_count}x", FONT_SIZE_SMALL, 60, 60, COLOR_YELLOW)
+                ui.draw_text(manager.screen, f"{loc.get_text('combo_label')}{manager.combo_count}x", FONT_SIZE_SMALL, 60, 60, COLOR_YELLOW, font_multiplier=manager.settings.get("font_scale", 1.0), settings=manager.settings)
             
             if manager.ghost_timer > 0:
-                ui.draw_text(manager.screen, "GHOST MODE", FONT_SIZE_SMALL, 60, 90, (200, 230, 255))
+                ui.draw_text(manager.screen, loc.get_text("ghost_mode"), FONT_SIZE_SMALL, 60, 90, (200, 230, 255), font_multiplier=manager.settings.get("font_scale", 1.0), settings=manager.settings)
             
             if manager.frenzy_timer > 0:
-                ui.draw_text(manager.screen, "FRENZY MODE", FONT_SIZE_SMALL, 60, 120, (255, 0, 0))
+                ui.draw_text(manager.screen, loc.get_text("frenzy_mode"), FONT_SIZE_SMALL, 60, 120, (255, 0, 0), font_multiplier=manager.settings.get("font_scale", 1.0), settings=manager.settings)
                 
-            if manager.state == "PAUSED": ui.draw_overlay(manager.screen, "PAUSED", "Press ESC to Resume | Q to Menu")
+            if manager.state == "PAUSED": ui.draw_overlay(manager.screen, loc.get_text("paused"), loc.get_text("paused_hint"))
         
         elif manager.state == "BOSS_BATTLE":
             for hz in manager.boss_hazards:
@@ -319,27 +329,27 @@ class GameplayState:
                 health_w = int(bar_width * (manager.boss.health / manager.boss.max_health))
                 pygame.draw.rect(manager.screen, COLOR_BOSS_RED, (x, y, health_w, bar_height))
                 pygame.draw.rect(manager.screen, COLOR_WHITE, (x, y, bar_width, bar_height), 2)
-                ui.draw_text(manager.screen, "MECHA-SNAKE BOSS", FONT_SIZE_MEDIUM, SCREEN_WIDTH // 2, y - 15, COLOR_BOSS_GOLD)
-            ui.draw_text(manager.screen, f"Score: {manager.score}", FONT_SIZE_SMALL, 60, 30, COLOR_WHITE)
-            ui.draw_text(manager.screen, f"Stage: {manager.stage}", FONT_SIZE_SMALL, 160, 30, COLOR_WHITE)
+                ui.draw_text(manager.screen, loc.get_text("boss_name"), FONT_SIZE_MEDIUM, SCREEN_WIDTH // 2, y - 15, COLOR_BOSS_GOLD, font_multiplier=manager.settings.get("font_scale", 1.0), settings=manager.settings)
+            ui.draw_text(manager.screen, f"{loc.get_text('score_label')}{manager.score}", FONT_SIZE_SMALL, 60, 30, COLOR_WHITE, font_multiplier=manager.settings.get("font_scale", 1.0), settings=manager.settings)
+            ui.draw_text(manager.screen, f"{loc.get_text('stage_label')}{manager.stage}", FONT_SIZE_SMALL, 160, 30, COLOR_WHITE, font_multiplier=manager.settings.get("font_scale", 1.0), settings=manager.settings)
             
             if manager.combo_count > 1:
-                ui.draw_text(manager.screen, f"Combo: {manager.combo_count}x", FONT_SIZE_SMALL, 60, 60, COLOR_YELLOW)
+                ui.draw_text(manager.screen, f"{loc.get_text('combo_label')}{manager.combo_count}x", FONT_SIZE_SMALL, 60, 60, COLOR_YELLOW, font_multiplier=manager.settings.get("font_scale", 1.0), settings=manager.settings)
             
             if manager.ghost_timer > 0:
-                ui.draw_text(manager.screen, "GHOST MODE", FONT_SIZE_SMALL, 60, 90, (200, 230, 255))
+                ui.draw_text(manager.screen, loc.get_text("ghost_mode"), FONT_SIZE_SMALL, 60, 90, (200, 230, 255), font_multiplier=manager.settings.get("font_scale", 1.0), settings=manager.settings)
             
             if manager.frenzy_timer > 0:
-                ui.draw_text(manager.screen, "FRENZY MODE", FONT_SIZE_SMALL, 60, 120, (255, 0, 0))
+                ui.draw_text(manager.screen, loc.get_text("frenzy_mode"), FONT_SIZE_SMALL, 60, 120, (255, 0, 0), font_multiplier=manager.settings.get("font_scale", 1.0), settings=manager.settings)
         
         elif manager.state == "GAMEOVER":
             import save_manager
             ui.draw_panel(manager.screen, SCREEN_WIDTH // 4, 50, SCREEN_WIDTH // 2, SCREEN_HEIGHT - 100)
-            ui.draw_text(manager.screen, "GAME OVER", FONT_SIZE_HUGE, SCREEN_WIDTH // 2, SCREEN_HEIGHT // 4, (255, 0, 0))
-            ui.draw_text(manager.screen, f"Final Score: {manager.score}", FONT_SIZE_MEDIUM, SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2, COLOR_WHITE)
+            ui.draw_text(manager.screen, loc.get_text("game_over"), FONT_SIZE_HUGE, SCREEN_WIDTH // 2, SCREEN_HEIGHT // 4, (255, 0, 0), font_multiplier=manager.settings.get("font_scale", 1.0), settings=manager.settings)
+            ui.draw_text(manager.screen, f"{loc.get_text('final_score')}{manager.score}", FONT_SIZE_MEDIUM, SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2, COLOR_WHITE, font_multiplier=manager.settings.get("font_scale", 1.0), settings=manager.settings)
             best_score = save_manager.get_high_score()
-            ui.draw_text(manager.screen, f"Best Score: {best_score}", FONT_SIZE_SMALL, SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 30, COLOR_YELLOW)
-            ui.draw_text(manager.screen, "Press ENTER to Restart | Q for Menu", FONT_SIZE_SMALL, SCREEN_WIDTH // 2, SCREEN_HEIGHT * 3 // 4, COLOR_WHITE)
+            ui.draw_text(manager.screen, f"{loc.get_text('best_score')}{best_score}", FONT_SIZE_SMALL, SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 30, COLOR_YELLOW, font_multiplier=manager.settings.get("font_scale", 1.0), settings=manager.settings)
+            ui.draw_text(manager.screen, loc.get_text("game_over_hint"), FONT_SIZE_SMALL, SCREEN_WIDTH // 2, SCREEN_HEIGHT * 3 // 4, COLOR_WHITE, font_multiplier=manager.settings.get("font_scale", 1.0), settings=manager.settings)
         
         elif manager.state == "COUNTDOWN":
             scale_factor = 1.0 + (manager.countdown_timer % 45) / 45 * 0.5
@@ -350,14 +360,14 @@ class GameplayState:
             self.draw_victory(manager)
 
     def draw_victory(self, manager):
-        ui.draw_overlay(manager.screen, "VICTORY!", f"Boss Defeated! Bonus 1000 pts\nTotal Score: {manager.score}")
-        ui.draw_text(manager.screen, "Press ENTER to return to Menu", FONT_SIZE_SMALL, SCREEN_WIDTH // 2, SCREEN_HEIGHT * 3 // 4, COLOR_WHITE)
+        ui.draw_overlay(manager.screen, loc.get_text("victory"), f"{loc.get_text('victory_msg')}{manager.score}")
+        ui.draw_text(manager.screen, loc.get_text("victory_hint"), FONT_SIZE_SMALL, SCREEN_WIDTH // 2, SCREEN_HEIGHT * 3 // 4, COLOR_WHITE, font_multiplier=manager.settings.get("font_scale", 1.0), settings=manager.settings)
 
     def draw_name_entry(self, manager):
-        ui.draw_text(manager.screen, "NEW HIGH SCORE!", FONT_SIZE_HUGE, SCREEN_WIDTH // 2, SCREEN_HEIGHT // 4, COLOR_YELLOW)
+        ui.draw_text(manager.screen, loc.get_text("new_highscore"), FONT_SIZE_HUGE, SCREEN_WIDTH // 2, SCREEN_HEIGHT // 4, COLOR_YELLOW, font_multiplier=manager.settings.get("font_scale", 1.0), settings=manager.settings)
         for i in range(3):
             color = COLOR_YELLOW if i == manager.name_cursor else COLOR_WHITE
             rect = pygame.Rect(SCREEN_WIDTH // 2 - 60 + i * 40, SCREEN_HEIGHT // 2 - 20, 35, 40)
             pygame.draw.rect(manager.screen, color, rect, 2)
-            ui.draw_text(manager.screen, manager.player_name[i], FONT_SIZE_MEDIUM, rect.centerx, rect.centery, color)
-        ui.draw_text(manager.screen, "Use Arrows/WASD to edit | ENTER to Save", FONT_SIZE_SMALL, SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 60, COLOR_WHITE)
+            ui.draw_text(manager.screen, manager.player_name[i], FONT_SIZE_MEDIUM, rect.centerx, rect.centery, color, font_multiplier=manager.settings.get("font_scale", 1.0), settings=manager.settings)
+        ui.draw_text(manager.screen, loc.get_text("highscore_entry_hint"), FONT_SIZE_SMALL, SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 60, COLOR_WHITE, font_multiplier=manager.settings.get("font_scale", 1.0), settings=manager.settings)

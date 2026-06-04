@@ -4,6 +4,7 @@ import random
 from config import *
 import game_assets
 from entities import Snake
+from localization_manager import loc
 
 class Button:
     def __init__(self, text, x, y, width, height, color, hover_color, font, hover_sound=None):
@@ -73,15 +74,41 @@ class Button:
 
 _font_cache = {}
 
-def draw_text(surface, text, size, x, y, color, font=None):
+def resolve_color(color, settings=None):
+    """Adjusts color based on colorblind settings."""
+    if not settings:
+        return color
+    
+    mode = settings.get("colorblind", "none")
+    if mode == "none":
+        return color
+
+    # We only map primary game colors to their accessible counterparts
+    # This is a simple mapping for the sake of implementation
+    from config import COLORBLIND_PALETTES
+    palette = COLORBLIND_PALETTES.get(mode, COLORBLIND_PALETTES["none"])
+    
+    if color == (0, 255, 0): return palette["green"]
+    if color == (255, 0, 0): return palette["red"]
+    if color == (255, 255, 0): return palette["yellow"]
+    if color == (128, 0, 128): return palette["purple"]
+    if color == (0, 0, 255): return palette["blue"]
+    
+    return color
+
+def draw_text(surface, text, size, x, y, color, font=None, font_multiplier=1.0, settings=None):
+    adjusted_size = int(size * font_multiplier)
+    
     if font is None:
-        key = (size, "Arial", True)
+        key = (adjusted_size, "Arial", True)
         if key not in _font_cache:
-            _font_cache[key] = pygame.font.SysFont("Arial", size, bold=True)
+            _font_cache[key] = pygame.font.SysFont("Arial", adjusted_size, bold=True)
         font = _font_cache[key]
     
+    resolved_color = resolve_color(color, settings)
+    
     # Use anti-alias=False for sharper pixel-art style text and to avoid smearing artifacts
-    text_surf = font.render(text, False, color)
+    text_surf = font.render(text, False, resolved_color)
     text_rect = text_surf.get_rect(center=(x, y))
     surface.blit(text_surf, text_rect)
 
@@ -138,7 +165,7 @@ class ShopUI:
         t = pygame.time.get_ticks() / 500
         preview_snake.body = [(px + math.cos(t+i*0.3)*30, py + math.sin(t+i*0.3)*20) for i in range(5)]
         preview_snake.draw(surface)
-        draw_text(surface, "PREVIEW", FONT_SIZE_SMALL, px, py + 70, COLOR_GREY)
+        draw_text(surface, loc.get_text("shop_preview"), FONT_SIZE_SMALL, px, py + 70, COLOR_GREY, font_multiplier=manager.settings.get("font_scale", 1.0), settings=manager.settings)
 
         # Skin Grid
         for i, theme_key in enumerate(manager.theme_keys):
@@ -155,7 +182,7 @@ class ShopUI:
             pygame.draw.rect(surface, bg_color, rect, border_radius=10)
             pygame.draw.rect(surface, border_color, rect, 3, border_radius=10)
             
-            draw_text(surface, THEMES[theme_key]["name"], FONT_SIZE_SMALL, cx + self.card_w // 2, cy + 25, COLOR_WHITE)
+            draw_text(surface, loc.get_text(f"theme_{theme_key}"), FONT_SIZE_SMALL, cx + self.card_w // 2, cy + 25, COLOR_WHITE, font_multiplier=manager.settings.get("font_scale", 1.0), settings=manager.settings)
             
             is_unlocked = theme_key in manager.unlocked_themes
             is_equipped = manager.theme == THEMES[theme_key]
@@ -169,7 +196,7 @@ class ShopUI:
 
             btn_rect = pygame.Rect(cx + 15, cy + 35, self.card_w - 30, 25)
             pygame.draw.rect(surface, btn_color, btn_rect, border_radius=5)
-            draw_text(surface, btn_text, 10, btn_rect.centerx, btn_rect.centery, COLOR_BLACK)
+            draw_text(surface, btn_text, 10, btn_rect.centerx, btn_rect.centery, COLOR_BLACK, font_multiplier=manager.settings.get("font_scale", 1.0), settings=manager.settings)
 
     def get_card_at_pos(self, mouse_pos, manager):
         mx, my = mouse_pos
