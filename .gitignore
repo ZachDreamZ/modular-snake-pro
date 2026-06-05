@@ -1,9 +1,54 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.egg-info/
 dist/
 build/
-__pycache__/
-*.pyc
-*.pyo
 *.spec
+*.egg
+
+# Virtual Environment
 .venv/
 venv/
-save_data.json
+env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Builds
+*.exe
+!builds/**/*.exe
+
+# Logs
+*.log
+!builds/**/*.log
+
+# Temp
+temp_install/
+create_release.py
+
+# Screenshots
+screenshots/**/*.png
+
+# QA Reports
+qa_reports/**/*.md
+
+# Config
+settings.json
+highscore.json
+stats.json
+analytics.json
+objectives_progress.json
+unlocked_achievements.json
+leaderboard.json
+release_payload.json
+player_experience_analysis.md
+task_progress.md
