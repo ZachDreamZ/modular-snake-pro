@@ -1,142 +1,202 @@
-# 🐍 SnakeGradient - Modular Snake Pro
+<div align="center">
 
-[![Release](https://img.shields.io/badge/release-v0.1.2-blue)](https://github.com/ZachDreamZ/modular-snake-pro/releases/tag/v0.1.2)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Python](https://img.shields.io/badge/python-3.11%2B-green)](https://www.python.org/)
-[![Pygame](https://img.shields.io/badge/pygame-2.6.1-orange)](https://www.pygame.org/)
+# 🐍 SnakeGradient
 
-A premium, modular evolution of the classic Snake game, featuring a robust state-driven architecture, a diverse theme shop, advanced AI-driven boss battles, and professional UI/UX design.
+### *A Premium Modular Snake Game with Professional UI/UX*
 
-## 🎮 Game Modes
+[![Release](https://img.shields.io/github/v/release/ZachDreamZ/modular-snake-pro?color=blue&label=Release&style=for-the-badge)](https://github.com/ZachDreamZ/modular-snake-pro/releases/latest)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](LICENSE)
+[![Python](https://img.shields.io/badge/Python-3.11%2B-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
+[![Pygame](https://img.shields.io/badge/Pygame-2.6.1%2B-green?style=for-the-badge&logo=pygame&logoColor=white)](https://www.pygame.org/)
+[![Platform](https://img.shields.io/badge/Platform-Windows%2011-0078D4?style=for-the-badge&logo=windows&logoColor=white)](https://www.microsoft.com/windows)
+[![Maintenance](https://img.shields.io/badge/Maintained-Yes-brightgreen?style=for-the-badge)](https://github.com/ZachDreamZ/modular-snake-pro/commits/main)
 
-| Mode | Description |
-|------|-------------|
-| **Classic** | The timeless experience with escalating speed and boss encounters |
-| **Time Rush** | Race against the clock - eat food to extend your timer |
-| **Maze Hell** | Start deep in the challenge with advanced stage constraints |
-| **Endless** | Infinite gameplay with no boss battles - how long can you survive? |
-| **Hardcore** | High-speed mode with boss battles at maximum intensity |
-| **Survival** | Test your endurance in a pure survival challenge |
+*A modern evolution of the classic Snake game, featuring 6 game modes, AI-driven boss battles, a complete progression system, and a polished arcade aesthetic.*
+
+[**🚀 Download Latest Release**](https://github.com/ZachDreamZ/modular-snake-pro/releases/latest) · [**📖 Documentation**](#-table-of-contents) · [**🐛 Report Bug**](https://github.com/ZachDreamZ/modular-snake-pro/issues) · [**💡 Request Feature**](https://github.com/ZachDreamZ/modular-snake-pro/issues)
+
+---
+
+</div>
+
+## 📑 Table of Contents
+
+- [🎯 About The Project](#-about-the-project)
+- [✨ Features](#-features)
+- [🎮 Game Modes](#-game-modes)
+- [🖼️ Screenshots](#-screenshots)
+- [🛠️ Tech Stack](#-tech-stack)
+- [🚀 Getting Started](#-getting-started)
+- [🎮 Controls](#-controls)
+- [🏗️ Architecture](#-architecture)
+- [🧪 Testing](#-testing)
+- [📦 Building](#-building)
+- [📋 Changelog](#-changelog)
+- [🤝 Contributing](#-contributing)
+- [📄 License](#-license)
+- [👥 Authors](#-authors)
+- [🙏 Acknowledgments](#-acknowledgments)
+
+---
+
+## 🎯 About The Project
+
+**SnakeGradient** is a premium, modular evolution of the classic Snake game that goes far beyond simple grid-based gameplay. Built with a robust state-driven architecture, it offers a complete arcade experience with multiple game modes, AI-driven boss battles, a fully-featured theme shop, and a comprehensive progression system.
+
+### Why SnakeGradient?
+
+- 🎮 **6 Distinct Game Modes** - From classic to hardcore survival
+- 🤖 **AI-Driven Boss Battles** - Intelligent enemies with unique attack patterns
+- 🎨 **6 Visual Themes** - Including legendary rarity skins
+- 🏆 **Achievement System** - 11 achievements to unlock
+- 📊 **Persistent Statistics** - Track your progress across sessions
+- ♿ **Accessibility First** - Colorblind support, font scaling, localization
+
+---
 
 ## ✨ Features
 
-### Gameplay
-- **6 Game Modes** - Classic, Time Rush, Maze Hell, Endless, Hardcore, Survival
-- **Boss Battles** - Face off against an AI-driven Mecha-Snake Boss with unique attack patterns
-- **Combo System** - Chain food eats for multiplier bonuses up to 3.0x
+<div align="center">
+
+| Category | Features |
+|----------|----------|
+| 🎮 **Gameplay** | 6 game modes, AI boss battles, combo system, frenzy mode, ghost mode, 6 food types, stage progression, AI opponent |
+| 🎨 **Visual & UI** | Professional typography, 6 visual themes, theme shop, colorblind support, font scaling, screen shake, particle effects |
+| 🏆 **Progression** | 11 achievements, 8 objectives, leaderboard, persistent stats, save/load system |
+| ♿ **Accessibility** | 3 colorblind palettes, font scaling, JSON localization, mod support |
+| 🔧 **Technical** | State machine architecture, event-driven design, modular systems, PyInstaller packaging |
+
+</div>
+
+### 🎮 Gameplay Features
+
+- **Combo System** - Chain food eats for multiplier bonuses up to **3.0x**
 - **Frenzy Mode** - Triggered at 10+ combo for enhanced gameplay
 - **Ghost Mode** - Temporary body collision immunity
 - **6 Food Types** - Normal, Golden, Poison, Shield, Missile, Ghost
 - **Stage Progression** - Dynamic difficulty scaling with obstacle generation
 - **AI Opponent** - Advanced pathfinding AI snake
 
-### Visual & UI
+### 🎨 Visual & UI Features
+
 - **Professional UI Framework** - PressStart2P typography, beveled borders, dynamic glow effects
 - **6 Visual Themes** - Classic Arcade, Cyberpunk Neon, Retro GameBoy, Golden Mecha, Ghost, The Void
 - **Theme Shop** - Collect points to unlock high-rarity skins (Common, Epic, Legendary)
 - **Colorblind Support** - Protanopia, Deuteranopia, Tritanopia palettes
 - **Font Scaling** - 1.0x to 1.5x for accessibility
 - **Screen Shake** - Impact feedback for food, power-ups, and death
-- **Particle Effects** - Visual feedback for all game events
 
-### Progression
+### 🏆 Progression Features
+
 - **Achievement System** - 11 achievements including First Blood, Dragon Slayer, Void Walker
 - **Objectives System** - 8 objectives with reward points and persistence
 - **Leaderboard** - High score tracking with stage information
 - **Persistent Stats** - Games played, boss wins, food eaten, max combo
 - **Save/Load** - Full game state persistence
 
-### Accessibility
-- **Colorblind Modes** - 3 colorblind palettes
-- **Font Scaling** - Adjustable text size
-- **Localization** - JSON-based language system
-- **Mod Support** - Custom theme loading system
+---
 
-## 🖼️ Visual Previews
+## 🎮 Game Modes
+
+| Mode | Description | Boss Battles | Timer |
+|------|-------------|:---:|:---:|
+| **Classic** | The timeless experience with escalating speed | ✅ | ❌ |
+| **Time Rush** | Race against the clock - eat food to extend your timer | ❌ | ✅ 60s |
+| **Maze Hell** | Start deep in the challenge with advanced stage constraints | ✅ | ❌ |
+| **Endless** | Infinite gameplay with no boss battles | ❌ | ❌ |
+| **Hardcore** | High-speed mode with boss battles at maximum intensity | ✅ | ❌ |
+| **Survival** | Test your endurance in a pure survival challenge | ✅ | ❌ |
+
+---
+
+## 🖼️ Screenshots
+
+<div align="center">
 
 | Main Menu | Theme Shop |
-| :---: | :---: |
-| ![Main Menu Screen](assets/screenshots/main_menu.png) | ![Theme Shop Screen](assets/screenshots/skin_shop.png) |
+|:---------:|:----------:|
+| ![Main Menu](assets/screenshots/main_menu.png) | ![Theme Shop](assets/screenshots/skin_shop.png) |
 
 | Gameplay | Boss Battle |
-| :---: | :---: |
-| ![Gameplay Preview](assets/screenshots/gameplay.png) | ![Boss Battle](assets/screenshots/boss_battle.png) |
+|:--------:|:-----------:|
+| ![Gameplay](assets/screenshots/gameplay.png) | ![Boss Battle](assets/screenshots/boss_battle.png) |
+
+</div>
+
+---
+
+## 🛠️ Tech Stack
+
+<div align="center">
+
+| Technology | Purpose | Version |
+|------------|---------|---------|
+| ![Python](https://img.shields.io/badge/Python-3776AB?style=flat-square&logo=python&logoColor=white) | Core Language | 3.11+ |
+| ![Pygame](https://img.shields.io/badge/Pygame-green?style=flat-square) | Game Engine | 2.6.1+ |
+| ![PyInstaller](https://img.shields.io/badge/PyInstaller-blue?style=flat-square) | Executable Builder | 6.20.0 |
+| ![psutil](https://img.shields.io/badge/psutil-orange?style=flat-square) | Process Monitoring | Latest |
+| ![GitHub Actions](https://img.shields.io/badge/GitHub_Actions-2088FF?style=flat-square&logo=github-actions&logoColor=white) | CI/CD | Latest |
+
+</div>
+
+---
 
 ## 🚀 Getting Started
 
 ### Prerequisites
-- Python 3.11+
-- Pygame 2.6.1+
+
+- **Python 3.11+** - [Download Python](https://www.python.org/downloads/)
+- **Pip** - Package manager (included with Python)
+- **Git** - [Download Git](https://git-scm.com/downloads)
 
 ### Installation
+
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/ZachDreamZ/modular-snake-pro.git
+   cd modular-snake-pro
+   ```
+
+2. **Create a virtual environment** (recommended)
+   ```bash
+   python -m venv .venv
+   .venv\Scripts\activate
+   ```
+
+3. **Install dependencies**
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+### Running from Source
+
 ```bash
-pip install -r requirements.txt
+python src/main.py
 ```
 
-### Execution
-```bash
-python main.py
-```
+### Running the Pre-built Executable
 
-### Controls
+1. Download the latest release from [Releases](https://github.com/ZachDreamZ/modular-snake-pro/releases/latest)
+2. Extract `SnakeGradient_v0.1.2.exe`
+3. Double-click to run
+
+---
+
+## 🎮 Controls
+
 | Key | Action |
-|-----|--------|
-| WASD / Arrow Keys | Move snake |
-| ESC / P | Pause |
-| Space | Confirm / Select |
-| Enter | High score entry confirm |
+|:----|:-------|
+| `WASD` / `Arrow Keys` | Move snake |
+| `ESC` / `P` | Pause game |
+| `Space` | Confirm / Select |
+| `Enter` | High score entry confirm |
+| `Mouse Click` | Menu navigation |
 
-## 🛠️ Development & Testing
+---
 
-### Automated QA Bot
-The project includes a comprehensive `playtest_bot.py` that performs:
-- Audio pipeline and asset loading verification
-- State machine transition validation
-- Snake movement, growth, and collision testing
-- UI hover/press/shop purchase logic testing
-- Boss system spawn and state transition testing
-- Combo, ghost, frenzy, and achievement mechanics testing
-- 9 behavioral player profiles (Aggressive, Passive, Completionist, etc.)
-- Edge case spam testing (menu, pause, settings, restart)
-- Long-run stability testing (300s+)
-- Save/load stress testing (1000+ cycles)
-- Accessibility audit (48 snapshot combinations)
-- Visual identity verification (13 screens)
+## 🏗️ Architecture
 
-```bash
-python -m src.tools.playtest_bot
-```
-
-### Production Build
-```bash
-pyinstaller --onefile --add-data "assets;assets" --add-data "localization;localization" src/main.py --name SnakeGradient_v0.1.2
-```
-
-## 📦 Release Artifacts
-
-```
-builds/v0.1.2/
-├── executable/
-│   └── SnakeGradient_v0.1.2.exe
-├── assets/
-├── logs/
-├── build_manifest.md
-└── SnakeGradient_v0.1.2.spec
-```
-
-## 📋 Changelog
-
-See [CHANGELOG.md](CHANGELOG.md) for full version history.
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 👥 Contributors
-
-See [CONTRIBUTORS.md](CONTRIBUTORS.md) for a list of contributors.
-
-## 🏗️ Project Structure
+SnakeGradient is built with a modular, state-driven architecture:
 
 ```
 src/
@@ -162,8 +222,143 @@ src/
     └── ui.py                  # UI components
 ```
 
-## 🔗 Links
+### Design Principles
 
-- **GitHub**: https://github.com/ZachDreamZ/modular-snake-pro
-- **Releases**: https://github.com/ZachDreamZ/modular-snake-pro/releases
-- **Issues**: https://github.com/ZachDreamZ/modular-snake-pro/issues
+- **State Machine Pattern** - Clean separation of game states
+- **Event-Driven Architecture** - Reactive event handling
+- **Modular Design** - Independent, testable components
+- **Configuration-Driven** - All game parameters in `config.py`
+- **Separation of Concerns** - UI, logic, and data are decoupled
+
+---
+
+## 🧪 Testing
+
+SnakeGradient includes a comprehensive automated QA testing bot.
+
+### Running Tests
+
+```bash
+python -m src.tools.playtest_bot
+```
+
+### Test Coverage
+
+The playtest bot performs **50+ automated tests** across these categories:
+
+| Category | Tests | Description |
+|----------|:-----:|:------------|
+| Audio Pipeline | 1 | Sound loading and playback |
+| State Machine | 1 | State transitions (Menu, Shop, Gameplay, Boss) |
+| Entity Logic | 4 | Movement, growth, collision, bounce |
+| UI System | 2 | Hover effects, shop purchase |
+| Boss System | 1 | Boss spawn and state transition |
+| v0.0.5 Mechanics | 4 | Combo, ghost, frenzy, void walker |
+| v0.0.8 Features | 18 | Achievements, objectives, hints, stats, etc. |
+| Behavioral Sims | 9 | Player profiles (Aggressive, Passive, etc.) |
+| Edge Cases | 4 | Menu, pause, settings, restart spam |
+| Stability | 3 | Long-run, state cycles, save/load stress |
+| UX/Accessibility | 6 | First-time, returning, accessibility audit |
+| Visual Identity | 2 | Layout validation, visual hierarchy |
+
+### Stress Testing
+
+- **Long-Run Stability**: 300s continuous gameplay (Avg FPS 10.01, Mem Growth 0.43MB)
+- **Edge Case Spam**: 500 iterations of menu/pause/settings/restart
+- **State Cycle Stress**: 200 game cycles without crash
+- **Save/Load Stress**: 1000 save/load cycles without corruption
+- **Accessibility Audit**: 48 snapshot combinations
+
+---
+
+## 📦 Building
+
+### Building the Executable
+
+```bash
+pyinstaller --onefile ^
+  --add-data "assets;assets" ^
+  --add-data "localization;localization" ^
+  --name SnakeGradient_v0.1.2 ^
+  src/main.py
+```
+
+### Build Output
+
+```
+builds/v0.1.2/
+├── executable/
+│   └── SnakeGradient_v0.1.2.exe  (21.2MB)
+├── assets/
+├── logs/
+├── build_manifest.md
+└── SnakeGradient_v0.1.2.spec
+```
+
+---
+
+## 📋 Changelog
+
+See [CHANGELOG.md](CHANGELOG.md) for the full version history.
+
+### Latest Release: v0.1.2 (RC2)
+
+- **Player Persona Testing** - 5 distinct personas simulated
+- **Real Player Behavior Simulation** - Button spamming, rapid menu switching
+- **Edge Case Validation** - Comprehensive boundary testing
+- **Boss Battle Pause** - Players can now pause during boss fights
+- **Void Theme Accessibility** - All 6 themes properly available in shop
+
+---
+
+## 🤝 Contributing
+
+Contributions are what make the open source community such an amazing place to learn, inspire, and create. Any contributions you make are **greatly appreciated**.
+
+1. **Fork the Project**
+2. **Create your Feature Branch** (`git checkout -b feature/AmazingFeature`)
+3. **Commit your Changes** (`git commit -m 'Add some AmazingFeature'`)
+4. **Push to the Branch** (`git push origin feature/AmazingFeature`)
+5. **Open a Pull Request**
+
+### Code Style
+
+- Follow PEP 8 for Python code
+- Use meaningful variable and function names
+- Add docstrings to all public functions
+- Write tests for new features
+
+---
+
+## 📄 License
+
+Distributed under the **MIT License**. See [`LICENSE`](LICENSE) for the full license text.
+
+---
+
+## 👥 Authors
+
+- **ZachDreamZ** - *Creator, Lead Developer, Game Designer* - [@ZachDreamZ](https://github.com/ZachDreamZ)
+
+See the list of [contributors](CONTRIBUTORS.md) who participated in this project.
+
+---
+
+## 🙏 Acknowledgments
+
+- **Cline** - AI-powered software engineering assistant
+- **Pygame Community** - Excellent game development framework
+- **All Playtesters** - For valuable feedback during development
+- **Open Source Contributors** - Whose libraries made this project possible
+
+---
+
+<div align="center">
+
+### ⭐ Star this repository if you found it useful!
+
+**Made with ❤️ by [ZachDreamZ](https://github.com/ZachDreamZ)**
+
+[⬆ Back to Top](#-snakegradient)
+
+</div>
