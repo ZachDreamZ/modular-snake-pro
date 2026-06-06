@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.1.4] - 2026-06-06
+### Changed
+- Updated mcp_servers/context7-mcp submodule
+
 ## [0.1.3] - 2026-06-06
 ### Added
 - Release notes for v0.1.2
