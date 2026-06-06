@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.1.3] - 2026-06-06
+### Added
+- Release notes for v0.1.2
+- MIT License and CONTRIBUTORS.md
+- .gitignore
+### Changed
+- Professional README.md and LICENSE formatting
+- Implementation summary and build manifest updates for v0.1.2 release
+
 ## [0.1.2] - 2026-06-06
 ### Added
 - Player persona testing with 5 distinct personas (First-Time, Casual, Competitive, Achievement Hunter, Long-Session)
