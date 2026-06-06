@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.1.5] - 2026-06-06
+### Changed
+- Updated .gitignore
+
 ## [0.1.4] - 2026-06-06
 ### Changed
 - Updated mcp_servers/context7-mcp submodule
