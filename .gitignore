@@ -52,3 +52,5 @@ leaderboard.json
 release_payload.json
 player_experience_analysis.md
 task_progress.md
+.env
+save_data.json
