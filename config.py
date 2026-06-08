@@ -1,4 +1,4 @@
-VERSION = "0.0.7"
+VERSION = "0.1.6"
 
 # Constants
 SCREEN_WIDTH = 800

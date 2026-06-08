@@ -1,5 +1,33 @@
 # Changelog
 
+## [0.1.6] - 2026-06-08
+### Added
+- Professional glassmorphism HUD with gradient gradient bar and COMBO label
+- Subtle grid overlay aligned to block size for spatial awareness
+- Starfield animated menu background with parallax scrolling
+- Keyboard navigation with focus rings on all menus
+- App icon (icon.ico/.png) and version info embedded in executable
+
+### Changed
+- Clean glassmorphism HUD with gradient bar, better text layout, COMBO label
+- Subtle grid overlay aligned to block size for spatial awareness
+- Vignette opacity reduced from 60 to 30 alpha
+- All 4 colorblind modes verified working (protanopia, deuteranopia, tritanopia, none)
+- Menu: animated starfield background, glowing animated title, hover glow buttons
+- Version bumped from 0.0.7 to 0.1.6
+
+### Fixed
+- Particle color handling bug (invalid color argument)
+- AI snake direction reversal logic
+- Colorblind text rendering in all modes
+- Menu starfield initialization before first update
+
+### Quality
+- 64/64 tests pass (0 failures, 0 warnings)
+- 11 screenshots captured across all states
+- Assets: icon.ico/.png, installer.iss, version_info.txt
+- Windows executable built with PyInstaller (28.7MB)
+
 ## [0.1.5] - 2026-06-06
 ### Changed
 - Updated .gitignore
