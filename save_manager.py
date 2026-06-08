@@ -1,74 +1,109 @@
 import json
 import os
 
-HIGHSCORE_FILE = "highscore.json"
+SAVE_FILE = "total_points.json"
 LEADERBOARD_FILE = "leaderboard.json"
-TOTAL_POINTS_FILE = "total_points.json"
+ACHIEVEMENTS_FILE = "achievements.json"
+SETTINGS_FILE = "settings.json"
 OBJECTIVES_FILE = "objectives_progress.json"
 STATS_FILE = "stats.json"
 
+def _read_save():
+    if not os.path.exists(SAVE_FILE):
+        return {}
+    try:
+        with open(SAVE_FILE, "r") as f:
+            return json.load(f)
+    except (json.JSONDecodeError, IOError):
+        return {}
+
+def _write_save(data):
+    try:
+        with open(SAVE_FILE, "w") as f:
+            json.dump(data, f)
+    except IOError:
+        pass
+
 def save_high_score(score):
-    data = {}
-    if os.path.exists(HIGHSCORE_FILE):
-        try:
-            with open(HIGHSCORE_FILE, "r") as f:
-                data = json.load(f)
-        except (json.JSONDecodeError, IOError):
-            data = {}
-    old_high = data.get("high_score", 0)
-    if score > old_high:
+    data = _read_save()
+    if score > data.get("high_score", 0):
         data["high_score"] = score
-    data["total_points"] = data.get("total_points", 0) + score
-    with open(HIGHSCORE_FILE, "w") as f:
-        json.dump(data, f)
+    _write_save(data)
 
 def get_high_score():
-    if os.path.exists(HIGHSCORE_FILE):
-        try:
-            with open(HIGHSCORE_FILE, "r") as f:
-                data = json.load(f)
-            return data.get("high_score", 0)
-        except (json.JSONDecodeError, IOError):
-            return 0
-    return 0
+    return _read_save().get("high_score", 0)
 
 def save_total_points(points):
-    data = {}
-    if os.path.exists(TOTAL_POINTS_FILE):
-        try:
-            with open(TOTAL_POINTS_FILE, "r") as f:
-                data = json.load(f)
-        except (json.JSONDecodeError, IOError):
-            data = {}
+    data = _read_save()
     data["points"] = points
-    with open(TOTAL_POINTS_FILE, "w") as f:
-        json.dump(data, f)
+    _write_save(data)
 
 def load_total_points():
-    if os.path.exists(TOTAL_POINTS_FILE):
-        try:
-            with open(TOTAL_POINTS_FILE, "r") as f:
-                data = json.load(f)
-            return data.get("points", 0)
-        except (json.JSONDecodeError, IOError):
-            return 0
-    return 0
+    return _read_save().get("points", 0)
 
-def get_leaderboard():
-    if os.path.exists(LEADERBOARD_FILE):
-        try:
-            with open(LEADERBOARD_FILE, "r") as f:
-                return json.load(f)
-        except (json.JSONDecodeError, IOError):
-            return []
-    return []
+def load_unlocked_themes():
+    return _read_save().get("unlocked_themes", ["default"])
 
-def save_leaderboard(leaderboard):
-    with open(LEADERBOARD_FILE, "w") as f:
-        json.dump(leaderboard, f)
+def save_unlocked_themes(themes):
+    data = _read_save()
+    data["unlocked_themes"] = themes
+    _write_save(data)
 
 def load_leaderboard():
-    return get_leaderboard()
+    if not os.path.exists(LEADERBOARD_FILE):
+        return []
+    try:
+        with open(LEADERBOARD_FILE, "r") as f:
+            return json.load(f)
+    except (json.JSONDecodeError, IOError):
+        return []
+
+def save_leaderboard(leaderboard):
+    try:
+        with open(LEADERBOARD_FILE, "w") as f:
+            json.dump(leaderboard[:5], f)
+    except IOError:
+        pass
+
+def load_achievements():
+    if not os.path.exists(ACHIEVEMENTS_FILE):
+        return []
+    try:
+        with open(ACHIEVEMENTS_FILE, "r") as f:
+            return json.load(f)
+    except (json.JSONDecodeError, IOError):
+        return []
+
+def save_achievements(achievements):
+    try:
+        with open(ACHIEVEMENTS_FILE, "w") as f:
+            json.dump(achievements, f)
+    except IOError:
+        pass
+
+def check_high_score(score):
+    leaderboard = load_leaderboard()
+    if len(leaderboard) < 5:
+        return True
+    return score > min(entry["score"] for entry in leaderboard)
+
+def load_settings():
+    defaults = {"music": True, "sfx": True, "font_scale": 1.0, "colorblind": "none", "language": "en"}
+    if not os.path.exists(SETTINGS_FILE):
+        return defaults
+    try:
+        with open(SETTINGS_FILE, "r") as f:
+            settings = json.load(f)
+            return {**defaults, **settings}
+    except (json.JSONDecodeError, IOError):
+        return defaults
+
+def save_settings(settings):
+    try:
+        with open(SETTINGS_FILE, "w") as f:
+            json.dump(settings, f)
+    except IOError:
+        pass
 
 def save_objectives_progress(progress):
     """Save objectives completion tracking data."""
@@ -99,3 +134,9 @@ def load_stats():
         except (json.JSONDecodeError, IOError):
             return {"total_food_eaten": 0, "total_games": 0, "total_time": 0, "max_combo": 0, "boss_wins": 0, "total_score": 0, "games_played": 0}
     return {"total_food_eaten": 0, "total_games": 0, "total_time": 0, "max_combo": 0, "boss_wins": 0, "total_score": 0, "games_played": 0}
+
+def update_total_points(delta):
+    current_total = load_total_points()
+    new_total = current_total + delta
+    save_total_points(new_total)
+    return new_total

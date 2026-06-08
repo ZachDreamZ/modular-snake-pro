@@ -10,7 +10,7 @@ from analytics_manager import analytics
 
 class GameplayState:
     def __init__(self):
-        pass
+        self._particle_timer = 0
 
     def handle_events(self, manager, events):
         if manager.state == "PLAYING":
@@ -58,7 +58,7 @@ class GameplayState:
                     elif event.key == pygame.K_RETURN:
                         self.save_final_high_score(manager)
                         manager.change_state("MENU")
-                
+
                 if event.type == pygame.MOUSEBUTTONDOWN:
                     if event.button == 1:
                         mx, my = pygame.mouse.get_pos()
@@ -82,7 +82,6 @@ class GameplayState:
             elif manager.countdown_timer > 0: manager.countdown_text = loc.get_text("countdown_go")
             else:
                 manager.change_state("PLAYING")
-                # v0.0.7: Show contextual hints based on mode
                 if manager.current_mode == MODE_TIME_RUSH:
                     for hint_text, duration in CONTEXTUAL_HINTS.get("time_rush_intro", []):
                         manager.show_contextual_hint(f"rush_{hint_text[:20]}", hint_text, duration)
@@ -130,6 +129,7 @@ class GameplayState:
             if ai_head in manager.snake.body:
                 manager.score += 50
                 self.reset_ai_snake(manager)
+                self.create_burst(manager, ai_head, COLOR_BLUE, 15)
             if head == manager.food.pos:
                 manager.total_food_eaten += 1
                 self.handle_food_eat(manager)
@@ -139,6 +139,7 @@ class GameplayState:
             for p in manager.particles[:]:
                 p.update()
                 if p.lifetime <= 0: manager.particles.remove(p)
+            self._spawn_ambient_particles(manager)
             self.check_achievements(manager)
             self.check_objectives(manager)
         elif manager.state == "BOSS_BATTLE":
@@ -146,11 +147,20 @@ class GameplayState:
         elif manager.state == "VICTORY":
             if manager.victory_timer > 0: manager.victory_timer -= 1
 
+    def _spawn_ambient_particles(self, manager):
+        self._particle_timer += 1
+        if self._particle_timer > 3:
+            self._particle_timer = 0
+            if len(manager.particles) < 20:
+                cx = random.randint(0, SCREEN_WIDTH)
+                cy = random.randint(0, SCREEN_HEIGHT)
+                c = (80, 80, 80)
+                manager.particles.append(Particle(cx, cy, c, vx=random.uniform(-0.3, 0.3), vy=random.uniform(-0.5, -0.1), size=1, lifetime=60))
+
     def handle_food_eat(self, manager):
         self.check_achievements(manager)
         self.check_objectives(manager)
-        
-        # Combo Logic
+
         if manager.food.type != "poison":
             manager.combo_count += 1
             manager.combo_timer = 60
@@ -162,7 +172,7 @@ class GameplayState:
 
         multiplier = 1.0 + (manager.combo_count // COMBO_MULTIPLIER_STEP) * 0.2
         multiplier = min(multiplier, COMBO_MAX_MULTIPLIER)
-        
+
         if manager.food.type == "normal":
             game_assets.sound_manager.play("eat")
             manager.score += int(FOOD_SCORES["normal"] * multiplier)
@@ -195,9 +205,8 @@ class GameplayState:
         self.create_burst(manager, manager.food.pos, manager.theme["food_normal"])
         boss_body = manager.boss.body if manager.boss else None
         manager.food.spawn(manager.snake.body, manager.ai_snake.body, manager.obstacles, boss_body)
-        
-        # Dynamic Difficulty: Non-linear speed scaling
-        manager.game_speed = min(20, 10 + int(math.sqrt(manager.score / 5)))
+
+        manager.game_speed = min(20, 10 + int(math.sqrt(max(0, manager.score / 5))))
 
     def handle_ai_food_eat(self, manager):
         if manager.food.type == "golden": manager.ai_snake.body.append(manager.ai_snake.body[-1])
@@ -206,6 +215,7 @@ class GameplayState:
         manager.food.spawn(manager.snake.body, manager.ai_snake.body, manager.obstacles)
 
     def reset_ai_snake(self, manager):
+        self.create_burst(manager, manager.ai_snake.body[0], COLOR_BLUE, 20)
         manager.ai_snake = AISnake((BLOCK_SIZE * 15, BLOCK_SIZE * 15))
 
     def create_burst(self, manager, pos, color, count=10):
@@ -218,7 +228,7 @@ class GameplayState:
             manager.snake.has_shield = False
             manager.shield_timer = 0
             manager.invulnerability_timer = 1 * manager.game_speed
-            self.create_burst(manager, manager.snake.body[0], (0, 0, 255))
+            self.create_burst(manager, manager.snake.body[0], (0, 0, 255), 20)
             return False
         self.create_burst(manager, manager.snake.body[0], COLOR_BOSS_RED, count=30)
         manager.shake_amount = 15
@@ -230,7 +240,6 @@ class GameplayState:
         game_assets.sound_manager.play("crash")
         save_manager.save_high_score(manager.score)
         analytics.log_game_end(manager.score, cause)
-        # v0.0.7: Save persistent stats on game over
         manager.save_persistent_stats()
         if game_assets.check_high_score(manager.score): manager.change_state("HIGH_SCORE_ENTRY")
         else: manager.change_state("GAMEOVER")
@@ -251,7 +260,6 @@ class GameplayState:
         if new_unlocks: game_assets.save_achievements(manager.unlocked_achievements)
 
     def check_objectives(self, manager):
-        """Check and award objectives."""
         import save_manager
         if "score_100" not in manager.completed_objectives and manager.score >= 100:
             manager.completed_objectives.append("score_100")
@@ -304,13 +312,13 @@ class GameplayState:
             if boss_rect.collidepoint(proj.x, proj.y):
                 manager.boss.health -= 10
                 manager.shake_amount = 10
-                self.create_burst(manager, (proj.x, proj.y), COLOR_BOSS_GOLD)
+                self.create_burst(manager, (int(proj.x), int(proj.y)), COLOR_BOSS_GOLD, 15)
                 manager.projectiles.remove(proj)
                 if manager.boss.health <= 0: self.trigger_boss_victory(manager)
             elif any(pygame.Rect(seg[0], seg[1], BLOCK_SIZE, BLOCK_SIZE).collidepoint(proj.x, proj.y) for seg in manager.boss.body[1:]):
                 manager.boss.health -= 5
                 manager.shake_amount = 5
-                self.create_burst(manager, (proj.x, proj.y), COLOR_BOSS_RED)
+                self.create_burst(manager, (int(proj.x), int(proj.y)), COLOR_BOSS_RED, 8)
                 manager.projectiles.remove(proj)
         if random.random() < 0.02:
             hx = random.randint(0, (SCREEN_WIDTH - BLOCK_SIZE) // BLOCK_SIZE) * BLOCK_SIZE
@@ -344,93 +352,162 @@ class GameplayState:
         manager.shake_amount = 20
         manager.victory_timer = 120
         manager.change_state("VICTORY")
-        # v0.0.7: Show boss battle hints after first encounter
         manager.show_contextual_hint("boss_complete", loc.get_text("boss_hint_victory"), 240)
 
     def draw(self, manager, offset_x, offset_y):
+        font_scale = manager.settings.get("font_scale", 1.0)
+        settings = manager.settings
+
         if manager.state == "PLAYING" or manager.state == "PAUSED":
-            for obs in manager.obstacles:
-                pygame.draw.rect(manager.screen, COLOR_GREY, (obs[0] + offset_x, obs[1] + offset_y, BLOCK_SIZE, BLOCK_SIZE))
-            manager.food.draw(manager.screen, manager.theme)
-            manager.snake.draw(manager.screen)
-            manager.ai_snake.draw(manager.screen)
-            for p in manager.particles: p.draw(manager.screen)
-            
-            font_scale = manager.settings.get("font_scale", 1.0)
-            settings = manager.settings
-            
-            ui.draw_text(manager.screen, f"{loc.get_text('score_label')}{manager.score}", FONT_SIZE_SMALL, 60, 30, COLOR_WHITE, font_multiplier=font_scale, settings=settings)
-            ui.draw_text(manager.screen, f"{loc.get_text('stage_label')}{manager.stage}", FONT_SIZE_SMALL, 160, 30, COLOR_WHITE, font_multiplier=font_scale, settings=settings)
-            
-            if manager.current_mode == MODE_TIME_RUSH:
-                timer_color = COLOR_RED if manager.time_rush_timer < 10 else COLOR_WHITE
-                ui.draw_text(manager.screen, f"{loc.get_text('time_label')}{int(manager.time_rush_timer)}s", FONT_SIZE_SMALL, 260, 30, timer_color, font_multiplier=font_scale, settings=settings)
-            
-            if manager.combo_count > 1:
-                ui.draw_text(manager.screen, f"{loc.get_text('combo_label')}{manager.combo_count}x", FONT_SIZE_SMALL, 60, 60, COLOR_YELLOW, font_multiplier=font_scale, settings=settings)
-            
-            if manager.ghost_timer > 0:
-                ui.draw_text(manager.screen, loc.get_text("ghost_mode"), FONT_SIZE_SMALL, 60, 90, (200, 230, 255), font_multiplier=font_scale, settings=settings)
-            
-            if manager.frenzy_timer > 0:
-                ui.draw_text(manager.screen, loc.get_text("frenzy_mode"), FONT_SIZE_SMALL, 60, 120, (255, 0, 0), font_multiplier=font_scale, settings=settings)
-                
-            if manager.state == "PAUSED": ui.draw_overlay(manager.screen, loc.get_text("paused"), loc.get_text("paused_hint"))
-        
+            self._draw_gameplay(manager, offset_x, offset_y, font_scale, settings)
         elif manager.state == "BOSS_BATTLE":
-            for hz in manager.boss_hazards:
-                pygame.draw.rect(manager.screen, COLOR_PURPLE, (hz[0] + offset_x, hz[1] + offset_y, BLOCK_SIZE, BLOCK_SIZE))
-            manager.food.draw(manager.screen, manager.theme)
-            manager.snake.draw(manager.screen)
-            if manager.boss: manager.boss.draw(manager.screen)
-            for proj in manager.projectiles: proj.draw(manager.screen)
-            for p in manager.particles: p.draw(manager.screen)
-            if manager.boss:
-                bar_width, bar_height = 400, 20
-                x, y = SCREEN_WIDTH // 2 - bar_width // 2, 20
-                pygame.draw.rect(manager.screen, (50, 0, 0), (x, y, bar_width, bar_height))
-                health_w = int(bar_width * (manager.boss.health / manager.boss.max_health))
-                pygame.draw.rect(manager.screen, COLOR_BOSS_RED, (x, y, health_w, bar_height))
-                pygame.draw.rect(manager.screen, COLOR_WHITE, (x, y, bar_width, bar_height), 2)
-                ui.draw_text(manager.screen, loc.get_text("boss_name"), FONT_SIZE_MEDIUM, SCREEN_WIDTH // 2, y - 15, COLOR_BOSS_GOLD, font_multiplier=manager.settings.get("font_scale", 1.0), settings=manager.settings)
-            
-            font_scale = manager.settings.get("font_scale", 1.0)
-            settings = manager.settings
-            ui.draw_text(manager.screen, f"{loc.get_text('score_label')}{manager.score}", FONT_SIZE_SMALL, 60, 30, COLOR_WHITE, font_multiplier=font_scale, settings=settings)
-            ui.draw_text(manager.screen, f"{loc.get_text('stage_label')}{manager.stage}", FONT_SIZE_SMALL, 160, 30, COLOR_WHITE, font_multiplier=font_scale, settings=settings)
-            
-            if manager.combo_count > 1:
-                ui.draw_text(manager.screen, f"{loc.get_text('combo_label')}{manager.combo_count}x", FONT_SIZE_SMALL, 60, 60, COLOR_YELLOW, font_multiplier=font_scale, settings=settings)
-            
-            if manager.ghost_timer > 0:
-                ui.draw_text(manager.screen, loc.get_text("ghost_mode"), FONT_SIZE_SMALL, 60, 90, (200, 230, 255), font_multiplier=font_scale, settings=settings)
-            
-            if manager.frenzy_timer > 0:
-                ui.draw_text(manager.screen, loc.get_text("frenzy_mode"), FONT_SIZE_SMALL, 60, 120, (255, 0, 0), font_multiplier=font_scale, settings=settings)
-        
+            self._draw_boss_battle(manager, offset_x, offset_y, font_scale, settings)
         elif manager.state == "GAMEOVER":
-            import save_manager
-            ui.draw_panel(manager.screen, SCREEN_WIDTH // 4, 50, SCREEN_WIDTH // 2, SCREEN_HEIGHT - 100)
-            ui.draw_text(manager.screen, loc.get_text("game_over"), FONT_SIZE_HUGE, SCREEN_WIDTH // 2, SCREEN_HEIGHT // 4, (255, 0, 0), font_multiplier=manager.settings.get("font_scale", 1.0), settings=manager.settings)
-            ui.draw_text(manager.screen, f"{loc.get_text('final_score')}{manager.score}", FONT_SIZE_MEDIUM, SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2, COLOR_WHITE, font_multiplier=manager.settings.get("font_scale", 1.0), settings=manager.settings)
-            best_score = save_manager.get_high_score()
-            ui.draw_text(manager.screen, f"{loc.get_text('best_score')}{best_score}", FONT_SIZE_SMALL, SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 30, COLOR_YELLOW, font_multiplier=manager.settings.get("font_scale", 1.0), settings=manager.settings)
-            ui.draw_text(manager.screen, loc.get_text("game_over_hint"), FONT_SIZE_SMALL, SCREEN_WIDTH // 2, SCREEN_HEIGHT * 3 // 4, COLOR_WHITE, font_multiplier=manager.settings.get("font_scale", 1.0), settings=manager.settings)
-        
+            self._draw_gameover(manager, font_scale, settings)
         elif manager.state == "COUNTDOWN":
-            scale_factor = 1.0 + (manager.countdown_timer % 45) / 45 * 0.5
-            ui.draw_text(manager.screen, manager.countdown_text, int(FONT_SIZE_HUGE * scale_factor), SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2, COLOR_WHITE)
+            self._draw_countdown(manager)
         elif manager.state == "HIGH_SCORE_ENTRY":
             self.draw_name_entry(manager)
         elif manager.state == "VICTORY":
             self.draw_victory(manager)
 
+    def _draw_hud_panel(self, manager, font_scale, settings):
+        # Top HUD bar - clean glassmorphism
+        hud_y = 4
+        panel_h = 34
+        panel = pygame.Surface((SCREEN_WIDTH, panel_h), pygame.SRCALPHA)
+        for x in range(SCREEN_WIDTH):
+            alpha = int(80 + 40 * (x / SCREEN_WIDTH))
+            pygame.draw.line(panel, (0, 0, 0, alpha), (x, 0), (x, panel_h))
+        pygame.draw.line(panel, (255, 255, 255, 30), (0, 0), (SCREEN_WIDTH, 0))
+        manager.screen.blit(panel, (0, hud_y))
+
+        y = hud_y + 17
+        ui.draw_text(manager.screen, f"{loc.get_text('score_label')}{manager.score}", FONT_SIZE_SMALL, 65, y, COLOR_WHITE, font_multiplier=font_scale, settings=settings)
+        ui.draw_text(manager.screen, f"{loc.get_text('stage_label')}{manager.stage}", FONT_SIZE_SMALL, 170, y, (200, 200, 200), font_multiplier=font_scale, settings=settings)
+
+        if manager.current_mode == MODE_TIME_RUSH:
+            timer_color = COLOR_RED if manager.time_rush_timer < 10 else COLOR_WHITE
+            ui.draw_text(manager.screen, f"{loc.get_text('time_label')}{int(manager.time_rush_timer)}s", FONT_SIZE_SMALL, 280, y, timer_color, font_multiplier=font_scale, settings=settings)
+
+        # Right side - combo/powerups
+        rx = SCREEN_WIDTH - 12
+        if manager.combo_count > 1:
+            combo_color = COLOR_YELLOW if manager.combo_count < 5 else (255, 150, 0) if manager.combo_count < 10 else COLOR_RED
+            ui.draw_text(manager.screen, f"{manager.combo_count}x", FONT_SIZE_SMALL, rx, y, combo_color, font_multiplier=font_scale, settings=settings)
+            ui.draw_text(manager.screen, "COMBO", FONT_SIZE_TINY, rx - 35, y + 12, combo_color, font_multiplier=font_scale, settings=settings)
+
+        if manager.ghost_timer > 0:
+            ghost_pulse = (math.sin(pygame.time.get_ticks() * 0.01) + 1) * 0.5
+            c = tuple(int(200 + 55 * ghost_pulse) for _ in range(3))
+            ui.draw_text(manager.screen, "GHOST", FONT_SIZE_TINY, rx - 45, y + 12, c, font_multiplier=font_scale, settings=settings)
+
+        if manager.frenzy_timer > 0:
+            pulse = (math.sin(pygame.time.get_ticks() * 0.015) + 1) * 0.5
+            c = (int(200 + 55 * pulse), 0, 0)
+            ui.draw_text(manager.screen, "FRENZY", FONT_SIZE_TINY, rx - 45, y + 12, c, font_multiplier=font_scale, settings=settings)
+
+    def _draw_gameplay(self, manager, offset_x, offset_y, font_scale, settings):
+        self._draw_grid_overlay(manager, offset_x, offset_y)
+        
+        for obs in manager.obstacles:
+            pygame.draw.rect(manager.screen, COLOR_GREY, (obs[0] + offset_x, obs[1] + offset_y, BLOCK_SIZE, BLOCK_SIZE))
+            pygame.draw.rect(manager.screen, (100, 100, 100), (obs[0] + offset_x + 2, obs[1] + offset_y + 2, BLOCK_SIZE - 4, BLOCK_SIZE - 4), 1)
+        manager.food.draw(manager.screen, manager.theme)
+        manager.snake.draw(manager.screen)
+        manager.ai_snake.draw(manager.screen)
+        for p in manager.particles:
+            p.draw(manager.screen)
+
+        self._draw_hud_panel(manager, font_scale, settings)
+
+    def _draw_grid_overlay(self, manager, offset_x, offset_y):
+        grid_color = (40, 40, 40)
+        ox = offset_x % BLOCK_SIZE
+        oy = offset_y % BLOCK_SIZE
+        for x in range(-ox, SCREEN_WIDTH, BLOCK_SIZE):
+            pygame.draw.line(manager.screen, grid_color, (x, 0), (x, SCREEN_HEIGHT))
+        for y in range(-oy, SCREEN_HEIGHT, BLOCK_SIZE):
+            pygame.draw.line(manager.screen, grid_color, (0, y), (SCREEN_WIDTH, y))
+
+        if manager.state == "PAUSED":
+            ui.draw_overlay(manager.screen, loc.get_text("paused"), loc.get_text("paused_hint"))
+
+    def _draw_boss_battle(self, manager, offset_x, offset_y, font_scale, settings):
+        for hz in manager.boss_hazards:
+            pulse = (math.sin(pygame.time.get_ticks() * 0.01) + 1) * 0.3 + 0.7
+            c = tuple(int(128 * pulse) for _ in range(3))
+            c = (c[0], 0, c[2])
+            pygame.draw.rect(manager.screen, c, (hz[0] + offset_x, hz[1] + offset_y, BLOCK_SIZE, BLOCK_SIZE))
+        manager.food.draw(manager.screen, manager.theme)
+        manager.snake.draw(manager.screen)
+        if manager.boss:
+            manager.boss.draw(manager.screen)
+        for proj in manager.projectiles:
+            proj.draw(manager.screen)
+        for p in manager.particles:
+            p.draw(manager.screen)
+
+        if manager.boss:
+            bar_width, bar_height = 350, 16
+            x, y = SCREEN_WIDTH // 2 - bar_width // 2, 8
+            # Background
+            pygame.draw.rect(manager.screen, (30, 0, 0), (x, y, bar_width, bar_height), border_radius=8)
+            # Health
+            health_w = int(bar_width * (manager.boss.health / manager.boss.max_health))
+            if health_w > 0:
+                hp_color = COLOR_BOSS_RED if manager.boss.health > 30 else (255, 100, 0)
+                pygame.draw.rect(manager.screen, hp_color, (x + 2, y + 2, max(1, health_w - 4), bar_height - 4), border_radius=6)
+            # Border
+            pygame.draw.rect(manager.screen, COLOR_WHITE, (x, y, bar_width, bar_height), 1, border_radius=8)
+            ui.draw_text(manager.screen, f"{loc.get_text('boss_name')} [{manager.boss.health}/{manager.boss.max_health}]", FONT_SIZE_TINY, SCREEN_WIDTH // 2, y + bar_height // 2, COLOR_BOSS_GOLD, font_multiplier=font_scale, settings=settings)
+
+        self._draw_hud_panel(manager, font_scale, settings)
+
+    def _draw_gameover(self, manager, font_scale, settings):
+        overlay = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.SRCALPHA)
+        overlay.fill((0, 0, 0, 200))
+        manager.screen.blit(overlay, (0, 0))
+
+        panel_x, panel_y = SCREEN_WIDTH // 4, 50
+        panel_w, panel_h = SCREEN_WIDTH // 2, SCREEN_HEIGHT - 100
+        ui.draw_panel(manager.screen, panel_x, panel_y, panel_w, panel_h, alpha=180, border_color=COLOR_BOSS_RED)
+
+        ui.draw_glow_text(manager.screen, loc.get_text("game_over"), FONT_SIZE_HUGE, SCREEN_WIDTH // 2, panel_y + 60, (255, 50, 50))
+        ui.draw_text(manager.screen, f"{loc.get_text('final_score')}{manager.score}", FONT_SIZE_MEDIUM, SCREEN_WIDTH // 2, panel_y + 130, COLOR_WHITE, font_multiplier=font_scale, settings=settings)
+        best_score = game_assets.get_high_score()
+        ui.draw_text(manager.screen, f"{loc.get_text('best_score')}{best_score}", FONT_SIZE_SMALL, SCREEN_WIDTH // 2, panel_y + 170, COLOR_YELLOW, font_multiplier=font_scale, settings=settings)
+        ui.draw_text(manager.screen, loc.get_text("game_over_hint"), FONT_SIZE_SMALL, SCREEN_WIDTH // 2, panel_y + panel_h - 40, COLOR_WHITE, font_multiplier=font_scale, settings=settings)
+
+    def _draw_countdown(self, manager):
+        scale_factor = 1.0 + (manager.countdown_timer % 45) / 45 * 0.5
+        color = COLOR_GREEN if manager.countdown_text == "GO!" else COLOR_WHITE
+        ui.draw_glow_text(manager.screen, manager.countdown_text, int(FONT_SIZE_HUGE * scale_factor), SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2, color)
+
     def draw_victory(self, manager):
-        ui.draw_overlay(manager.screen, loc.get_text("victory"), f"{loc.get_text('victory_msg')}{manager.score}")
-        ui.draw_text(manager.screen, loc.get_text("victory_hint"), FONT_SIZE_SMALL, SCREEN_WIDTH // 2, SCREEN_HEIGHT * 3 // 4, COLOR_WHITE, font_multiplier=manager.settings.get("font_scale", 1.0), settings=manager.settings)
+        overlay = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.SRCALPHA)
+        overlay.fill((0, 0, 0, 200))
+        manager.screen.blit(overlay, (0, 0))
+
+        ui.draw_glow_text(manager.screen, loc.get_text("victory"), 60, SCREEN_WIDTH // 2, SCREEN_HEIGHT // 3, (255, 215, 0))
+        ui.draw_text(manager.screen, f"{loc.get_text('victory_msg')}{manager.score}", FONT_SIZE_MEDIUM, SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2, COLOR_WHITE, font_multiplier=manager.settings.get("font_scale", 1.0), settings=manager.settings)
+        ui.draw_text(manager.screen, loc.get_text("victory_hint"), FONT_SIZE_SMALL, SCREEN_WIDTH // 2, SCREEN_HEIGHT * 3 // 4 + 20, COLOR_WHITE, font_multiplier=manager.settings.get("font_scale", 1.0), settings=manager.settings)
+
+        # Particles of victory
+        t = pygame.time.get_ticks() / 100
+        for i in range(20):
+            angle = t + i * math.pi * 2 / 20
+            x = SCREEN_WIDTH // 2 + math.cos(angle) * 100
+            y = SCREEN_HEIGHT // 3 + math.sin(angle) * 30
+            c = (random.randint(200, 255), random.randint(150, 255), random.randint(0, 100))
+            pygame.draw.circle(manager.screen, c, (int(x), int(y)), random.randint(2, 5))
 
     def draw_name_entry(self, manager):
-        ui.draw_text(manager.screen, loc.get_text("new_highscore"), FONT_SIZE_HUGE, SCREEN_WIDTH // 2, SCREEN_HEIGHT // 4, COLOR_YELLOW, font_multiplier=manager.settings.get("font_scale", 1.0), settings=manager.settings)
+        overlay = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.SRCALPHA)
+        overlay.fill((0, 0, 0, 200))
+        manager.screen.blit(overlay, (0, 0))
+
+        ui.draw_glow_text(manager.screen, loc.get_text("new_highscore"), FONT_SIZE_HUGE, SCREEN_WIDTH // 2, SCREEN_HEIGHT // 4, COLOR_YELLOW)
         for i in range(3):
             color = COLOR_YELLOW if i == manager.name_cursor else COLOR_WHITE
             rect = pygame.Rect(SCREEN_WIDTH // 2 - 60 + i * 40, SCREEN_HEIGHT // 2 - 20, 35, 40)

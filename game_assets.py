@@ -292,111 +292,20 @@ class SoundManager:
 asset_manager = AssetManager()
 sound_manager = SoundManager()
 
-# Legacy helper functions for persistence and leaderboard (kept intact)
-def _read_data():
-    if not os.path.exists(SAVE_FILE):
-        return {}
-    try:
-        with open(SAVE_FILE, "r") as f:
-            return json.load(f)
-    except (json.JSONDecodeError, IOError):
-        return {}
-
-def _write_data(data):
-    try:
-        with open(SAVE_FILE, "w") as f:
-            json.dump(data, f)
-    except IOError:
-        pass
-
-def load_high_score():
-    return _read_data().get("high_score", 0)
-
-def save_high_score(score):
-    data = _read_data()
-    if score > data.get("high_score", 0):
-        data["high_score"] = score
-        _write_data(data)
-
-def load_total_points():
-    return _read_data().get("points", 0)
-
-def save_total_points(points):
-    data = _read_data()
-    data["points"] = points
-    _write_data(data)
-
-def update_total_points(delta):
-    current_total = load_total_points()
-    new_total = current_total + delta
-    save_total_points(new_total)
-    return new_total
-
-def update_score(score):
-    save_high_score(score)
-    update_total_points(score)
-
-def load_unlocked_themes():
-    data = _read_data()
-    return data.get("unlocked_themes", ["default"])
-
-def save_unlocked_themes(themes):
-    data = _read_data()
-    data["unlocked_themes"] = themes
-    _write_data(data)
-
-def load_leaderboard():
-    if not os.path.exists(LEADERBOARD_FILE):
-        return []
-    try:
-        with open(LEADERBOARD_FILE, "r") as f:
-            return json.load(f)
-    except (json.JSONDecodeError, IOError):
-        return []
-
-def load_achievements():
-    if not os.path.exists(ACHIEVEMENTS_FILE):
-        return []
-    try:
-        with open(ACHIEVEMENTS_FILE, "r") as f:
-            return json.load(f)
-    except (json.JSONDecodeError, IOError):
-        return []
-
-def save_achievements(achievements):
-    try:
-        with open(ACHIEVEMENTS_FILE, "w") as f:
-            json.dump(achievements, f)
-    except IOError:
-        pass
-
-def save_leaderboard(leaderboard):
-    try:
-        with open(LEADERBOARD_FILE, "w") as f:
-            json.dump(leaderboard[:5], f)
-    except IOError:
-        pass
-
-def check_high_score(score):
-    leaderboard = load_leaderboard()
-    if len(leaderboard) < 5:
-        return True
-    return score > min(entry["score"] for entry in leaderboard)
-
-def load_settings():
-    defaults = {"music": True, "sfx": True}
-    if not os.path.exists(SETTINGS_FILE):
-        return defaults
-    try:
-        with open(SETTINGS_FILE, "r") as f:
-            settings = json.load(f)
-            return {**defaults, **settings}
-    except (json.JSONDecodeError, IOError):
-        return defaults
-
-def save_settings(settings):
-    try:
-        with open(SETTINGS_FILE, "w") as f:
-            json.dump(settings, f)
-    except IOError:
-        pass
+# Use save_manager for all persistence
+import save_manager as _sm
+get_high_score = _sm.get_high_score
+load_high_score = _sm.get_high_score
+save_high_score = _sm.save_high_score
+load_total_points = _sm.load_total_points
+save_total_points = _sm.save_total_points
+update_total_points = _sm.update_total_points
+load_unlocked_themes = _sm.load_unlocked_themes
+save_unlocked_themes = _sm.save_unlocked_themes
+load_leaderboard = _sm.load_leaderboard
+save_leaderboard = _sm.save_leaderboard
+load_achievements = _sm.load_achievements
+save_achievements = _sm.save_achievements
+check_high_score = _sm.check_high_score
+load_settings = _sm.load_settings
+save_settings = _sm.save_settings

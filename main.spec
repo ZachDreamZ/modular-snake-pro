@@ -1,12 +1,18 @@
 # -*- mode: python ; coding: utf-8 -*-
+import os
+from pathlib import Path
 
+block_cipher = None
 
 a = Analysis(
     ['main.py'],
     pathex=[],
     binaries=[],
-    datas=[('assets', 'assets'), ('localization', 'localization')],
-    hiddenimports=[],
+    datas=[
+        ('assets', 'assets'),
+        ('localization', 'localization'),
+    ],
+    hiddenimports=['pygame'],
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
@@ -14,7 +20,8 @@ a = Analysis(
     noarchive=False,
     optimize=0,
 )
-pyz = PYZ(a.pure)
+
+pyz = PYZ(a.pure, cipher=block_cipher)
 
 exe = EXE(
     pyz,
@@ -22,7 +29,7 @@ exe = EXE(
     a.binaries,
     a.datas,
     [],
-    name='main',
+    name='SnakeGradient',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
@@ -35,4 +42,16 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
+    icon='assets/icon.ico',
+    version='version_info.txt',
+)
+
+coll = COLLECT(
+    exe,
+    a.binaries,
+    a.datas,
+    strip=False,
+    upx=True,
+    upx_exclude=[],
+    name='SnakeGradient',
 )
